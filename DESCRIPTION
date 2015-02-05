@@ -1,8 +1,16 @@
 Package: FWDselect
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph)
+Title: Selecting variables in regression models
+Version: 1.2.0.9000
+Authors@R: c(
+    person("Marta", "Sestelo",email= "sestelo@uvigo", role = c("aut", "cre")),
+    person("Nora", "M. Villanueva",email= "nmvillanueva@uvigo", role = "aut"),
+    person("Javier", "Roca-Pardinas",email= "roca@uvigo", role = "ctb"))
+Description: FWDselect package introduces a simple method
+    to select the best model or best subset of variables using
+    different types of data (binary, gaussian or poisson) and
+    applying it in different contexts (parametric or nonparametric).
+URL: http://webs.uvigo.es/depc05/reports/13_02.pdf
 Depends: R (>= 3.1.1)
-License: What license is it under?
+License: MIT + file LICENSE
 LazyData: true
+Imports: mgcv

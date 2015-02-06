@@ -19,7 +19,7 @@
 #'@return \item{q}{A vector of subset sizes.} \item{criterion }{A vector of
 #'Information criterion values.} \item{selection }{Selected variables for each
 #'size.}
-#'@author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+#'@author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 #'@seealso \code{\link{selection}} \code{\link{plot.qselection}}.
 #' @examples
 #' library(FWDselect)

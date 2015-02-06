@@ -7,7 +7,7 @@
 #' @param ylab NULL
 #' @param \ldots Other options.
 #' @return Simply returns a plot.
-#' @author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+#' @author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 #' @seealso \code{\link{selection}}.
 #' @examples
 #' library(FWDselect)

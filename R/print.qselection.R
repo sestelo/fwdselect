@@ -6,7 +6,7 @@
 #' @return The function returns a summary table with the subsets of size
 #'   \eqn{q}, their information criterion values and the chosen variables for
 #'   each one.
-#' @author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+#' @author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 #' @seealso \code{\link{selection}}.
 #' @examples
 #' library(FWDselect)

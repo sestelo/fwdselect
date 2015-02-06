@@ -24,7 +24,7 @@
 #'  variable.} \item{Variable number}{Number of the variables.}
 #'  \item{Information criterion}{Information criterion used and its value.}
 #'  \item{Prediction}{The prediction of the best model.}
-#'@author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+#'@author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 #'@examples
 #'library(FWDselect)
 #'data(pollution)

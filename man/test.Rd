@@ -69,7 +69,7 @@ test(x, y, method = "lm", nboot = 5)
 Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 }
 \references{
-Sestelo, M., Villanueva, N. M. and Roca-Pardiñas, J. (2013).
+Sestelo, M., Villanueva, N. M. and Roca-Pardinas, J. (2013).
  FWDselect: an R package for selecting variables in regression models.
  Discussion Papers in Statistics and Operation Research, 13/01.
 }

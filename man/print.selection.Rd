@@ -28,7 +28,7 @@ obj1 = selection(x, y, q = 1, method = "lm", criterion = "deviance")
 obj1
 }
 \author{
-Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 }
 \seealso{
 \code{\link{selection}}.

@@ -6,7 +6,7 @@
 #' @return The function returns the best subset of size q and its information
 #'   criterion value. In the case of \code{seconds=TRUE} this information is
 #'   returned for each alternative model.
-#' @author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+#' @author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 #' @seealso \code{\link{selection}}.
 #' @examples
 #' library(FWDselect)

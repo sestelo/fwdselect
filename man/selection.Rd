@@ -56,6 +56,6 @@ obj11 = selection(x, y, q = 1, method = "lm", criterion = "deviance", seconds = 
 obj11
 }
 \author{
-Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 }
 

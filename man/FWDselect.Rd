@@ -39,7 +39,7 @@ determine the number of variables that should be introduced into the model,
 only the \code{\link{test}} function needs to be applied.
 }
 \author{
-Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 }
 \references{
 Burnham, K., Anderson, D. (2002). Model selection and multimodel
@@ -54,7 +54,7 @@ Burnham, K., Anderson, D. (2002). Model selection and multimodel
 
   Miller, A. (2002). Subset selection in regression. Champman and Hall.
 
-  Sestelo, M., Villanueva, N. M. and Roca-Pardiñas, J. (2013). FWDselect:
+  Sestelo, M., Villanueva, N. M. and Roca-Pardinas, J. (2013). FWDselect:
   Variable selection algorithm in regression models. Discussion Papers in
   Statistics and Operation Research, University of Vigo, 13/02.
 }

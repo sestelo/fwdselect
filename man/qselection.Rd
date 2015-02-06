@@ -46,7 +46,7 @@ obj2 = qselection(x, y, qvector = c(1:4), method = "lm", criterion = "R2")
 obj2
 }
 \author{
-Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardiñas.
+Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 }
 \seealso{
 \code{\link{selection}} \code{\link{plot.qselection}}.

@@ -10,7 +10,7 @@
 #'  used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 #'  (\code{"poisson"}).
 #'@param nboot Number of bootstrap repeats.
-#'@param speedup A logical value. If  \code{TRUE}, the testing
+#'@param speedup A logical value. If  \code{TRUE} (default), the testing
 #'  procedure is  accelerated by a minor change in the statistic.
 #'@param unique A logical value. If  \code{TRUE}, the test is performed only for
 #'  one null hypothesis, given by the argument  \code{q}.
@@ -48,7 +48,7 @@
 
 
 test <- function(x, y, method = "lm", family = "gaussian",
-    nboot = 50, speedup = FALSE, unique = FALSE,
+    nboot = 50, speedup = TRUE, unique = FALSE,
     q = 1) {
 
     # Statistics T

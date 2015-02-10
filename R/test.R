@@ -63,11 +63,12 @@ test <- function(x, y, method = "lm", family = "gaussian",
             family = family, seconds = FALSE, criterion = "deviance")
         pred <<- aux$Prediction
         sel_num = aux$Variable_number
-        res = y - pred
+        #res = y - pred
+        res = aux$Best_model$residuals
         if (speed == TRUE & qT!=(nvar-1)) {
             xno = x[, -sel_num]
-            var_imp = selection(xno, y, q = 1, method = optionT,
-                family = family, seconds = FALSE,
+            var_imp = selection(xno, res, q = 1, method = optionT,
+                family = "gaussian", seconds = FALSE,
                 criterion = "deviance")$Variable_number
             xres = xno[, c(var_imp)]
         } else {
@@ -75,7 +76,7 @@ test <- function(x, y, method = "lm", family = "gaussian",
         }
         data_res = cbind(res, xres)
 
-        # if(optionT=='lm'){
+         #if(optionT == "lm"){
         #pred1 = gam(res ~ data_res[, 2], data = data_res)  #} # esta para coger una variable
         #pred1 = gam(res ~ data_res[,2], data = data_res)
         # if(optionT=='glm'&family=='binomial'){
@@ -87,10 +88,15 @@ test <- function(x, y, method = "lm", family = "gaussian",
         # problemas con el k fmla <-
         # as.formula(paste('res ~ ', paste(xnam,
         # collapse= '+'))) pred1=gam(fmla)# }
-        if(class(xres) == "numeric"){xnam <- paste("s(xres)", sep = "")}else{
-        xnam <- paste("s(xres[,", 1:ncol(xres),"])", sep = "")}
-        fmla <- as.formula(paste("res ~ ", paste(xnam, collapse= "+")))
-        pred1 <- gam(fmla)
+
+        if(optionT == "gam"){
+          if(class(xres) == "numeric"){xnam <- paste("s(xres)", sep = "")}else{
+          xnam <- paste("s(xres[,", 1:ncol(xres),"])", sep = "")}
+          fmla <- as.formula(paste("res ~ ", paste(xnam, collapse= "+")))
+          pred1 <- gam(fmla)
+        }else{
+          pred1 <- glm(res ~ ., family = "gaussian", data = as.data.frame(data_res))
+        }
 
         pred1 <- predict(pred1, type = "response")
         T = sum(abs(pred1))

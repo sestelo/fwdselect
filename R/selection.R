@@ -88,7 +88,7 @@ selection <- function(x, y, q, criterion = "deviance",
     out <- 1:nvar
     xyes = NULL
     for (k in 1:q) {
-        aic = NULL
+        ic = NULL
         for (j in out) {
             if (method == "gam" & is.factor(x[,
                 j]) == FALSE) {
@@ -98,9 +98,9 @@ selection <- function(x, y, q, criterion = "deviance",
                 models <- update(model, . ~ . +
                   x[, j])
             }
-            aic <- c(aic, AIC(models))
+            ic <- c(ic, deviance(models))
         }
-        ii = which.min(aic)
+        ii = which.min(ic)
         inside[k] = out[ii]
         out = out[-ii]
         if (method == "gam" & is.factor(x[, inside[[k]]]) ==
@@ -114,7 +114,7 @@ selection <- function(x, y, q, criterion = "deviance",
         xyes[k] = xnam
         model <- update(models, as.formula(paste(". ~ ",
             paste(xyes, collapse = "+"))))
-        bestaic = AIC(model)
+        bestic = deviance(model)
     }
     stop <- integer(q)
     end = 1
@@ -145,22 +145,22 @@ selection <- function(x, y, q, criterion = "deviance",
             if (method == "gam" & is.factor(x[,
                 j]) == FALSE) {
                 xnam[f] = "s(x[,j])"
-                aic = NULL
+                ic = NULL
             } else {
                 xnam[f] = "x[,j]"
-                aic = NULL
+                ic = NULL
             }
 
             for (j in out) {
                 model1 <- update(model, as.formula(paste(". ~ ",
                   paste(xnam, collapse = "+"))))
-                aic <- c(aic, AIC(model1))
+                ic <- c(ic, deviance(model1))
             }
-            ii = which.min(aic)
-            if (aic[ii] >= bestaic) {
+            ii = which.min(ic)
+            if (ic[ii] >= bestic) {
                 stop[f] = 0
             } else {
-                ii = which.min(aic)
+                ii = which.min(ic)
                 oldinside = inside
                 inside[f] = out[ii]
                 out[ii] = oldinside[f]
@@ -175,7 +175,7 @@ selection <- function(x, y, q, criterion = "deviance",
                 xnam[f] = xin
                 model <- update(model, as.formula(paste(". ~ ",
                   paste(xnam, collapse = "+"))))
-                bestaic = AIC(model)
+                bestic = deviance(model)
                 stop[f] = 1
             }
         }
@@ -242,9 +242,11 @@ selection <- function(x, y, q, criterion = "deviance",
     muhat = predict(Mtrainning, type = "response")
 
     if (family == "binomial") {y = as.numeric(as.character(y))}
-    var_res = sum((y[test] - muhat[test])^2)/length(test)
+
+    var_res = sum((y[test] - muhat[test])^2)/length(test) #var_res
+
     r2cv = 1 - (var_res/(var(y[test]) * (length(test) -
-        1)/length(test)))
+        1)/length(test))) #r2cv
 
     muhat_test = muhat[test]
     y_test = y[test]
@@ -269,8 +271,6 @@ selection <- function(x, y, q, criterion = "deviance",
             (1 - y_test) * log(1 - muhat_test)
         dev_cv = sum(entrop - entadd)
     }
-
-
 
     if (family == "poisson") {
         tempf = muhat_test
@@ -314,6 +314,9 @@ selection <- function(x, y, q, criterion = "deviance",
     # call=match.call()) }
 
 
+
+
+    #!!!!!!!!! FALTA CAMBIAR AIC Y METHODS!!!!!!!!
 
     if (seconds == TRUE) {
         bestaic1 = bestaic

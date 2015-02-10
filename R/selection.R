@@ -59,23 +59,25 @@ selection <- function(x, y, q, criterion = "deviance",
     nvar <- ncol(x)
     inside <- integer(q)
     n = length(y)
-    # if(q==nvar) { stop('The size of subset \'q\'
-    # is the same that the number of covariates') }
+
+    if(q==nvar) {
+        stop('The size of subset \'q\' is the same that the number of covariates')
+    }
 
     if (method == "lm") {
         model <- lm(y ~ NULL)
     }
-    if (method == "glm") {
-      model <- glm(y ~ NULL)
-    }
-    if (method == "gam") {
-      model <- gam(y ~ NULL)
+    if (method == "glm" & family == "gaussian") {
+      model <- glm(y ~ NULL, family = "gaussian")
     }
     if (method == "glm" & family == "binomial") {
         model <- glm(y ~ NULL, family = "binomial")
     }
     if (method == "glm" & family == "poisson") {
         model <- glm(y ~ NULL, family = "poisson")
+    }
+    if (method == "gam" & family == "gaussian") {
+      model <- gam(y ~ NULL, family = "gaussian")
     }
     if (method == "gam" & family == "binomial") {
         model <- gam(y ~ NULL, family = "binomial")
@@ -193,16 +195,10 @@ selection <- function(x, y, q, criterion = "deviance",
         pred = predict(lm(formula), type = "response")
     }
 
-    if (method == "glm") {
+    if (method == "glm" & family == "gaussian") {
       formula = model$call$formula
-      Mtrainning = glm(formula, weights = Wtrainning)
-      pred = predict(glm(formula), type = "response")
-    }
-
-    if (method == "gam") {
-      formula = model$call$formula
-      Mtrainning = gam(formula, weights = Wtrainning)
-      pred = predict(gam(formula), type = "response")
+      Mtrainning = glm(formula,, family = "gaussian", weights = Wtrainning)
+      pred = predict(glm(formula, family = "gaussian"), type = "response")
     }
 
     if (method == "glm" & family == "binomial") {
@@ -221,12 +217,18 @@ selection <- function(x, y, q, criterion = "deviance",
             type = "response")
     }
 
+    if (method == "gam" & family == "gaussian") {
+      formula = model$call$formula
+      Mtrainning = gam(formula, family = "gaussian", weights = Wtrainning)
+      pred = predict(gam(formula, family = "gaussian"), type = "response")
+    }
+
     if (method == "gam" & family == "poisson") {
         formula = model$call$formula
         # formula=model$Best_model$formula
         Mtrainning = gam(formula, family = "poisson",
             weights = Wtrainning)
-        pred = predict(gam(formula), type = "response")
+        pred = predict(gam(formula, family = "poisson"), type = "response")
     }
 
     if (method == "gam" & family == "binomial") {
@@ -234,11 +236,12 @@ selection <- function(x, y, q, criterion = "deviance",
         # formula=model$Best_model$formula
         Mtrainning = gam(formula, family = "binomial",
             weights = Wtrainning)
-        pred = predict(gam(formula), type = "response")
+        pred = predict(gam(formula, family = "binomial"), type = "response")
     }
 
     muhat = predict(Mtrainning, type = "response")
 
+    if (family == "binomial") {y = as.numeric(as.character(y))}
     var_res = sum((y[test] - muhat[test])^2)/length(test)
     r2cv = 1 - (var_res/(var(y[test]) * (length(test) -
         1)/length(test)))

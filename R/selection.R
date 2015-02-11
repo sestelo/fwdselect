@@ -67,24 +67,14 @@ selection <- function(x, y, q, criterion = "deviance",
     if (method == "lm") {
         model <- lm(y ~ NULL)
     }
-    if (method == "glm" & family == "gaussian") {
-      model <- glm(y ~ NULL, family = "gaussian")
+    if (method == "glm") {
+      model <- glm(y ~ NULL, family = family)
     }
-    if (method == "glm" & family == "binomial") {
-        model <- glm(y ~ NULL, family = "binomial")
+
+    if (method == "gam") {
+      model <- gam(y ~ NULL, family = family)
     }
-    if (method == "glm" & family == "poisson") {
-        model <- glm(y ~ NULL, family = "poisson")
-    }
-    if (method == "gam" & family == "gaussian") {
-      model <- gam(y ~ NULL, family = "gaussian")
-    }
-    if (method == "gam" & family == "binomial") {
-        model <- gam(y ~ NULL, family = "binomial")
-    }
-    if (method == "gam" & family == "poisson") {
-        model <- gam(y ~ NULL, family = "poisson")
-    }
+
     out <- 1:nvar
     xyes = NULL
     for (k in 1:q) {
@@ -132,15 +122,10 @@ selection <- function(x, y, q, criterion = "deviance",
                   xnam[num] = paste("s(x[,", inside[num],
                     "])", sep = "")
                 } else {
-                  # xnam[f]='s(x[,j])'; aic=NULL}else{
                   xnam[num] = paste("x[,", inside[num],
                     "]", sep = "")
                 }
             }
-
-            # xnam[f]='x[,j]'; aic=NULL}
-            # if(method=='gam'&is.factor(x[,out[1]])==FALSE){xnam[f]='s(x[,j])';
-            # aic=NULL}else{ xnam[f]='x[,j]'; aic=NULL}
 
             if (method == "gam" & is.factor(x[,
                 j]) == FALSE) {
@@ -184,7 +169,7 @@ selection <- function(x, y, q, criterion = "deviance",
         end = sum(stop)
     }
 
-    # r2cv
+    # cv
     test = seq(1, n, 2)
     Wtrainning = rep(1, n)
     Wtrainning[test] = 0
@@ -195,48 +180,16 @@ selection <- function(x, y, q, criterion = "deviance",
         pred = predict(lm(formula), type = "response")
     }
 
-    if (method == "glm" & family == "gaussian") {
+    if (method == "glm") {
       formula = model$call$formula
-      Mtrainning = glm(formula,, family = "gaussian", weights = Wtrainning)
-      pred = predict(glm(formula, family = "gaussian"), type = "response")
+      Mtrainning = glm(formula, family = family, weights = Wtrainning)
+      pred = predict(glm(formula, family = family), type = "response")
     }
 
-    if (method == "glm" & family == "binomial") {
-        formula = model$call$formula
-        Mtrainning = glm(formula, family = "binomial",
-            weights = Wtrainning)
-        pred = predict(glm(formula, family = "binomial"),
-            type = "response")
-    }
-
-    if (method == "glm" & family == "poisson") {
-        formula = model$call$formula
-        Mtrainning = glm(formula, family = "poisson",
-            weights = Wtrainning)
-        pred = predict(glm(formula, family = "poisson"),
-            type = "response")
-    }
-
-    if (method == "gam" & family == "gaussian") {
+    if (method == "gam") {
       formula = model$call$formula
-      Mtrainning = gam(formula, family = "gaussian", weights = Wtrainning)
-      pred = predict(gam(formula, family = "gaussian"), type = "response")
-    }
-
-    if (method == "gam" & family == "poisson") {
-        formula = model$call$formula
-        # formula=model$Best_model$formula
-        Mtrainning = gam(formula, family = "poisson",
-            weights = Wtrainning)
-        pred = predict(gam(formula, family = "poisson"), type = "response")
-    }
-
-    if (method == "gam" & family == "binomial") {
-        formula = model$call$formula
-        # formula=model$Best_model$formula
-        Mtrainning = gam(formula, family = "binomial",
-            weights = Wtrainning)
-        pred = predict(gam(formula, family = "binomial"), type = "response")
+      Mtrainning = gam(formula, family = family, weights = Wtrainning)
+      pred = predict(gam(formula, family = family), type = "response")
     }
 
     muhat = predict(Mtrainning, type = "response")
@@ -295,7 +248,6 @@ selection <- function(x, y, q, criterion = "deviance",
             ic = criterion, seconds = seconds, nmodels = nmodels,
             Prediction = pred)
     }
-    # call=match.call()) }
 
     if (criterion == "R2") {
         res <- list(Best_model = model, Variable_names = names1,
@@ -303,7 +255,6 @@ selection <- function(x, y, q, criterion = "deviance",
             ic = criterion, seconds = seconds, nmodels = nmodels,
             Prediction = pred)
     }
-    # call=match.call()) }
 
     if (criterion == "variance") {
         res <- list(Best_model = model, Variable_names = names1,
@@ -311,9 +262,6 @@ selection <- function(x, y, q, criterion = "deviance",
             ic = criterion, seconds = seconds, nmodels = nmodels,
             Prediction = pred)
     }
-    # call=match.call()) }
-
-
 
 
     #!!!!!!!!! FALTA CAMBIAR AIC Y METHODS!!!!!!!!

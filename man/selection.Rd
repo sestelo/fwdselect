@@ -5,7 +5,7 @@
 \title{Selecting a subset of \code{q} variables}
 \usage{
 selection(x, y, q, criterion = "deviance", method = "lm",
-  family = "gaussian", seconds = FALSE, nmodels = 1)
+  family = "gaussian", seconds = FALSE, nmodels = 1, par = TRUE)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -32,6 +32,9 @@ then, rather than returning the single best model only, the function returns
 a few of the best models (equivalent).}
 
 \item{nmodels}{Number of secondary models to be returned.}
+
+\item{par}{A logical value. If  \code{TRUE} (default), the
+procedure is  parallelized.}
 }
 \value{
 \item{Best model}{The best model. If \code{seconds=TRUE}, it returns

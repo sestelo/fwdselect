@@ -5,7 +5,7 @@
 \title{Bootstrap based test for covariate selection}
 \usage{
 test(x, y, method = "lm", family = "gaussian", nboot = 50,
-  speedup = TRUE, unique = FALSE, q = 1)
+  speedup = TRUE, unique = FALSE, q = 1, bootseed = NULL, par = TRUE)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -29,6 +29,11 @@ one null hypothesis, given by the argument  \code{q}.}
 
 \item{q}{If  \code{unique} is \code{TRUE}, \code{q} is the size of the subset
 of variables to be tested.}
+
+\item{bootseed}{See to be used in the bootstrap procedure.}
+
+\item{par}{A logical value. If  \code{TRUE} (default), the testing
+procedure is  parallelized.}
 }
 \value{
 \item{Hypothesis}{Number of the null hypothesis tested}

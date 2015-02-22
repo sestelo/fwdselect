@@ -40,7 +40,9 @@
 #'
 #'@importFrom mgcv gam
 #'@importFrom mgcv predict.gam
+#'@importFrom parallel detectCores
 #'@importFrom parallel parLapply
+#'@importFrom parallel stopCluster
 #'@export
 
 

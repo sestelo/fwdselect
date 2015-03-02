@@ -17,7 +17,7 @@
 #'@param q If  \code{unique} is \code{TRUE}, \code{q} is the size of the subset
 #'  of variables to be tested.
 #'@param bootseed See to be used in the bootstrap procedure.
-#'@param par A logical value. If  \code{TRUE} (default), the testing
+#'@param cluster A logical value. If  \code{TRUE} (default), the testing
 #'  procedure is  parallelized.
 #'@details In a regression framework, let \eqn{X_1, X_2, \ldots, X_p},  a set of
 #'  \eqn{p} initial variables and \eqn{Y} the response variable, we propose a
@@ -57,7 +57,7 @@
 
 test <- function(x, y, method = "lm", family = "gaussian",
                  nboot = 50, speedup = TRUE, unique = FALSE,
-                 q = 1, bootseed = NULL, par = TRUE) {
+                 q = 1, bootseed = NULL, cluster = TRUE) {
 
   # Statistics T
   Tvalue <- function(xy, qT = qh0, optionT = method,
@@ -68,8 +68,9 @@ test <- function(x, y, method = "lm", family = "gaussian",
     nvar = ncol(x)
     x = as.data.frame(x)
     aux = selection(x, y, q = qT, method = optionT,
-                    family = family, seconds = FALSE, criterion = "deviance")
-    if (!exists("pred")) {pred <<- aux$Prediction}
+                    family = family, seconds = FALSE, criterion = "deviance", nfolds = 1, cluster = FALSE)
+   # if (!exists("pred")) {pred <<- aux$Prediction}
+    pred <<- aux$Prediction
     sel_num = aux$Variable_number
     #res = y - pred
     res = aux$Best_model$residuals
@@ -77,7 +78,7 @@ test <- function(x, y, method = "lm", family = "gaussian",
       xno = x[, -sel_num]
       var_imp = selection(xno, res, q = 1, method = optionT,
                           family = "gaussian", seconds = FALSE,
-                          criterion = "deviance")$Variable_number
+                          criterion = "deviance", cluster = FALSE)$Variable_number
       xres = xno[, c(var_imp)]
     } else {
       xres = x[, -sel_num]
@@ -150,7 +151,7 @@ test <- function(x, y, method = "lm", family = "gaussian",
       # environment(funapply) <- test()
 
       ## for parallel
-      if (par==TRUE){
+      if (cluster==TRUE){
         num_cores <- detectCores() - 1
         if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
         cl<-makeCluster(num_cores, type = par_type)

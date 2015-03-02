@@ -51,7 +51,7 @@
 
 selection <- function(x, y, q, criterion = "deviance",
                       method = "lm", family = "gaussian", seconds = FALSE,
-                      nmodels = 1, nfodls = 10, cluster = TRUE) {
+                      nmodels = 1, nfolds = 5, cluster = TRUE) {
 
   if (missing(x)) {
     stop("Argument \"x\" is missing, with no default")
@@ -195,6 +195,8 @@ selection <- function(x, y, q, criterion = "deviance",
     end = sum(stop)
   }
 
+  pred <- predict(model, type = "response")
+
   if(cluster == TRUE) {stopCluster(cl)}
 
   # fin seleccion
@@ -208,7 +210,6 @@ selection <- function(x, y, q, criterion = "deviance",
 
   aux <- cvFolds(n, K = nfolds, type = "consecutive")
   #test = seq(1, n, 2)
-
   for (fold in 1:nfolds){
     test <- aux$which==fold
     Wtrainning = rep(1, n)
@@ -217,19 +218,19 @@ selection <- function(x, y, q, criterion = "deviance",
     if (method == "lm") {
       formula = model$call$formula
       Mtrainning = lm(formula, weights = Wtrainning)
-      pred = predict(lm(formula), type = "response")
+   #   pred = predict(lm(formula), type = "response")
     }
 
     if (method == "glm") {
       formula = model$call$formula
       Mtrainning = glm(formula, family = family, weights = Wtrainning)
-      pred = predict(glm(formula, family = family), type = "response")
+    #  pred = predict(glm(formula, family = family), type = "response")
     }
 
     if (method == "gam") {
       formula = model$call$formula
       Mtrainning = gam(formula, family = family, weights = Wtrainning)
-      pred = predict(gam(formula, family = family), type = "response")
+    #  pred = predict(gam(formula, family = family), type = "response")
     }
 
     muhat = predict(Mtrainning, type = "response")
@@ -292,7 +293,11 @@ selection <- function(x, y, q, criterion = "deviance",
 
 
 
-  names1 = names(x[inside])
+  if(class(x) == "data.frame"){
+    names1 = names(x[inside])
+  }else{
+    allnames <- colnames(x)
+    names1 = allnames[inside]}
   if(is.null(names1)){names1=inside}  #por si no tiene nombres
 
   if (criterion == "deviance") {

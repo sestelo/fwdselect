@@ -32,7 +32,7 @@
 #'@export
 
 qselection = function(x, y, qvector, criterion = "deviance",
-    method = "lm", family = "gaussian") {
+    method = "lm", family = "gaussian", nfolds = 5, cluster = TRUE) {
     if (missing(x)) {
         stop("Argument \"x\" is missing, with no default")
     }
@@ -44,10 +44,10 @@ qselection = function(x, y, qvector, criterion = "deviance",
     }
 
 
-
+    nf<- nfolds
     selectionq <- function(x, y, q, prevar = NULL, criterion = "deviance",
                           method = "lm", family = "gaussian", seconds = FALSE,
-                          nmodels = 1, par = TRUE) {
+                          nmodels = 1, nfolds = nf, cluster = TRUE) {
 
       if (missing(x)) {
         stop("Argument \"x\" is missing, with no default")
@@ -130,10 +130,10 @@ qselection = function(x, y, qvector, criterion = "deviance",
 
       for (k in bucle) {
         ic <- NULL
-        if (par == TRUE){
-          num_cores <- detectCores() - 1
-          if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-          cl <- makeCluster(num_cores, type = par_type)
+        if (cluster == TRUE){
+        #  num_cores <- detectCores() - 1
+        #  if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
+        #  cl <- makeCluster(num_cores, type = par_type)
           ic <- parLapply(cl = cl, out, fwdstep)
         }else{
           ic <- sapply(out, fwdstep)
@@ -178,7 +178,7 @@ qselection = function(x, y, qvector, criterion = "deviance",
           #f1<-formula(model)
           #attr(terms(f1),"term.labels")
           ic <- NULL
-          if (par == TRUE){
+          if (cluster == TRUE){
             ic <- parLapply(cl = cl, out, fwdstep2, bucle = f)
           }else{
             ic <- sapply(out, fwdstep2, bucle = f)
@@ -217,91 +217,199 @@ qselection = function(x, y, qvector, criterion = "deviance",
         end = sum(stop)
       }
 
-      if(par == TRUE) {stopCluster(cl)}
+
 
       # fin seleccion
 
 
-      # cv
-      test = seq(1, n, 2)
-      Wtrainning = rep(1, n)
-      Wtrainning[test] = 0
+#       # cv
+#       test = seq(1, n, 2)
+#       Wtrainning = rep(1, n)
+#       Wtrainning[test] = 0
+#
+#       if (method == "lm") {
+#         formula = model$call$formula
+#         Mtrainning = lm(formula, weights = Wtrainning)
+#         pred = predict(lm(formula), type = "response")
+#       }
+#
+#       if (method == "glm") {
+#         formula = model$call$formula
+#         Mtrainning = glm(formula, family = family, weights = Wtrainning)
+#         pred = predict(glm(formula, family = family), type = "response")
+#       }
+#
+#       if (method == "gam") {
+#         formula = model$call$formula
+#         Mtrainning = gam(formula, family = family, weights = Wtrainning)
+#         pred = predict(gam(formula, family = family), type = "response")
+#       }
+#
+#       muhat = predict(Mtrainning, type = "response")
+#
+#       if (family == "binomial") {y = as.numeric(as.character(y))}
+#
+#       var_res = sum((y[test] - muhat[test])^2)/length(test) #var_res
+#
+#       r2cv = 1 - (var_res/(var(y[test]) * (length(test) -
+#                                              1)/length(test))) #r2cv
+#
+#       muhat_test = muhat[test]
+#       y_test = y[test]
+#
+#       if (family == "gaussian")
+#         dev_cv = sum((y_test - muhat_test)^2)
+#
+#       if (family == "binomial") {
+#         ii = muhat_test < 1e-04
+#         muhat_test[ii] = 1e-04
+#         ii = muhat_test > 0.9999
+#         muhat_test[ii] = 0.9999
+#         entrop = rep(0, length(test))
+#         ii = (1 - y_test) * y_test > 0
+#         if (sum(ii) > 0) {
+#           entrop[ii] = 2 * (y_test[ii] * log(y_test[ii])) +
+#             ((1 - y_test[ii]) * log(1 - y_test[ii]))
+#         } else {
+#           entrop = 0
+#         }
+#         entadd = 2 * y_test * log(muhat_test) +
+#           (1 - y_test) * log(1 - muhat_test)
+#         dev_cv = sum(entrop - entadd)
+#       }
+#
+#       if (family == "poisson") {
+#         tempf = muhat_test
+#         ii = tempf < 1e-04
+#         tempf[ii] = 1e-04
+#         dev_cv = 2 * (-y_test * log(tempf) - (y_test -
+#                                                 muhat_test))
+#         ii = y_test > 0
+#         dev_cv[ii] = dev_cv[ii] + (2 * y_test[ii] *
+#                                      log(y_test[ii]))
+#         dev_cv = sum(dev_cv)
+#       }
+#
+#
+#
+#       names1 = names(x[inside])
+#       if(is.null(names1)){names1=inside}  #por si no tiene nombres
+#
+#       if (criterion == "deviance") {
+#         icfin = dev_cv
+#       } else if (criterion == "R2") {
+#         icfin = r2cv
+#       }else{
+#         icfin = var_res
+#       }
 
-      if (method == "lm") {
-        formula = model$call$formula
-        Mtrainning = lm(formula, weights = Wtrainning)
-        pred = predict(lm(formula), type = "response")
+
+
+# cv
+#nfolds <- 10
+var_res <- numeric (nfolds)
+dev_cv <- numeric (nfolds)
+r2cv <- numeric (nfolds)
+
+aux <- cvFolds(n, K = nfolds, type = "consecutive")
+#test = seq(1, n, 2)
+
+for (fold in 1:nfolds){
+  test <- aux$which==fold
+  Wtrainning = rep(1, n)
+  Wtrainning[test] = 0
+
+  if (method == "lm") {
+    formula = model$call$formula
+    Mtrainning = lm(formula, weights = Wtrainning)
+    pred = predict(lm(formula), type = "response")
+  }
+
+  if (method == "glm") {
+    formula = model$call$formula
+    Mtrainning = glm(formula, family = family, weights = Wtrainning)
+    pred = predict(glm(formula, family = family), type = "response")
+  }
+
+  if (method == "gam") {
+    formula = model$call$formula
+    Mtrainning = gam(formula, family = family, weights = Wtrainning)
+    pred = predict(gam(formula, family = family), type = "response")
+  }
+
+  muhat = predict(Mtrainning, type = "response")
+  muhat_test = muhat[test]
+  y_test = y[test]
+  if (family == "binomial") {y = as.numeric(as.character(y))}
+
+
+  if (criterion == "deviance") {
+
+    if (family == "gaussian")
+      dev_cv = sum((y_test - muhat_test)^2)
+
+    if (family == "binomial") {
+      ii = muhat_test < 1e-04
+      muhat_test[ii] = 1e-04
+      ii = muhat_test > 0.9999
+      muhat_test[ii] = 0.9999
+      entrop = rep(0, length(test))
+      ii = (1 - y_test) * y_test > 0
+      if (sum(ii) > 0) {
+        entrop[ii] = 2 * (y_test[ii] * log(y_test[ii])) +
+          ((1 - y_test[ii]) * log(1 - y_test[ii]))
+      } else {
+        entrop = 0
       }
+      entadd = 2 * y_test * log(muhat_test) +
+        (1 - y_test) * log(1 - muhat_test)
+      dev_cv = sum(entrop - entadd)
+    }
 
-      if (method == "glm") {
-        formula = model$call$formula
-        Mtrainning = glm(formula, family = family, weights = Wtrainning)
-        pred = predict(glm(formula, family = family), type = "response")
-      }
-
-      if (method == "gam") {
-        formula = model$call$formula
-        Mtrainning = gam(formula, family = family, weights = Wtrainning)
-        pred = predict(gam(formula, family = family), type = "response")
-      }
-
-      muhat = predict(Mtrainning, type = "response")
-
-      if (family == "binomial") {y = as.numeric(as.character(y))}
-
-      var_res = sum((y[test] - muhat[test])^2)/length(test) #var_res
-
-      r2cv = 1 - (var_res/(var(y[test]) * (length(test) -
-                                             1)/length(test))) #r2cv
-
-      muhat_test = muhat[test]
-      y_test = y[test]
-
-      if (family == "gaussian")
-        dev_cv = sum((y_test - muhat_test)^2)
-
-      if (family == "binomial") {
-        ii = muhat_test < 1e-04
-        muhat_test[ii] = 1e-04
-        ii = muhat_test > 0.9999
-        muhat_test[ii] = 0.9999
-        entrop = rep(0, length(test))
-        ii = (1 - y_test) * y_test > 0
-        if (sum(ii) > 0) {
-          entrop[ii] = 2 * (y_test[ii] * log(y_test[ii])) +
-            ((1 - y_test[ii]) * log(1 - y_test[ii]))
-        } else {
-          entrop = 0
-        }
-        entadd = 2 * y_test * log(muhat_test) +
-          (1 - y_test) * log(1 - muhat_test)
-        dev_cv = sum(entrop - entadd)
-      }
-
-      if (family == "poisson") {
-        tempf = muhat_test
-        ii = tempf < 1e-04
-        tempf[ii] = 1e-04
-        dev_cv = 2 * (-y_test * log(tempf) - (y_test -
-                                                muhat_test))
-        ii = y_test > 0
-        dev_cv[ii] = dev_cv[ii] + (2 * y_test[ii] *
-                                     log(y_test[ii]))
-        dev_cv = sum(dev_cv)
-      }
+    if (family == "poisson") {
+      tempf = muhat_test
+      ii = tempf < 1e-04
+      tempf[ii] = 1e-04
+      dev_cv = 2 * (-y_test * log(tempf) - (y_test -
+                                              muhat_test))
+      ii = y_test > 0
+      dev_cv[ii] = dev_cv[ii] + (2 * y_test[ii] *
+                                   log(y_test[ii]))
+      dev_cv[fold] = sum(dev_cv)
+    }
 
 
 
-      names1 = names(x[inside])
-      if(is.null(names1)){names1=inside}  #por si no tiene nombres
 
-      if (criterion == "deviance") {
-        icfin = dev_cv
-      } else if (criterion == "R2") {
-        icfin = r2cv
-      }else{
-        icfin = var_res
-      }
+  } else if (criterion == "R2") {
+
+    var_res = sum((y[test] - muhat[test])^2)/length(test) #var_res
+
+    r2cv[fold] = 1 - (var_res/(var(y[test]) * (length(test) -
+                                                 1)/length(test))) #r2cv
+
+
+  }else{
+    var_res[fold] = sum((y[test] - muhat[test])^2)/length(test) #var_res
+  }
+
+}
+
+
+if(class(x) == "data.frame"){
+  names1 = names(x[inside])
+}else{
+  allnames <- colnames(x)
+  names1 = allnames[inside]}
+if(is.null(names1)){names1=inside}  #por si no tiene nombres
+
+if (criterion == "deviance") {
+  icfin = mean(dev_cv)
+} else if (criterion == "R2") {
+  icfin = mean(r2cv)
+}else{
+  icfin = mean(var_res)
+}
 
 
       # if (criterion == "deviance") {
@@ -327,14 +435,21 @@ qselection = function(x, y, qvector, criterion = "deviance",
         cont = cont + 1
         if (q == qvector[1]) {
           prevar = NULL
+        #  prevar = c(54, 57, 45, 24, 12, 2, 33, 27)
         }else{
           prevar = aux$Variable_numbers
         #  prevar = NULL
         }
+        if (cluster == TRUE){
+          num_cores <- detectCores() - 1
+          if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
+          cl <- makeCluster(num_cores, type = par_type)
+        }
         aux = selectionq(x = x, y = y, q = q, prevar = prevar, criterion = criterion,
-            method = method, family = family, seconds = F)
+            method = method, family = family, seconds = F, cluster = cluster)
+        if(cluster == TRUE) {stopCluster(cl)}
         in_c[cont] = round(aux$Information_Criterion,
-            2)
+            3)
         var[cont] = toString(aux$Variable_names)
         qq[cont] = q
         print(paste("Selecting subset of size",

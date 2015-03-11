@@ -6,6 +6,7 @@
 #'@param y A vector with the response values.
 #'@param q An integer specifying the size of the subset of variables to be
 #'  selected.
+#'@param prevar FALTA
 #'@param criterion The cross-validation-based information criterion to be used.
 #'  Default is the deviance. Other functions provided are the coefficient of
 #'  determination (\code{"R2"}) and residual variance (\code{"variance"}).
@@ -22,9 +23,11 @@
 #'@param nfolds Number of folds for the cross-validation procedure.
 #'@param cluster A logical value. If  \code{TRUE} (default), the
 #'  procedure is  parallelized.
-#'@return \item{Best model}{The best model. If \code{seconds=TRUE}, it returns
-#'  also the best alternative models.} \item{Variable name}{Names of the
-#'  variable.} \item{Variable number}{Number of the variables.}
+#'@return
+#'\item{Best model}{The best model. If \code{seconds=TRUE}, it returns
+#'  also the best alternative models.}
+#'  \item{Variable name}{Names of the variable.}
+#'  \item{Variable number}{Number of the variables.}
 #'  \item{Information criterion}{Information criterion used and its value.}
 #'  \item{Prediction}{The prediction of the best model.}
 #'@author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
@@ -45,13 +48,14 @@
 #'@importFrom parallel makeCluster
 #'@importFrom parallel parLapply
 #'@importFrom parallel stopCluster
-#'@importFrom cvTools cvFolds
 #'@export
 
 
-selection <- function(x, y, q, criterion = "deviance",
+selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
                       method = "lm", family = "gaussian", seconds = FALSE,
                       nmodels = 1, nfolds = 5, cluster = TRUE) {
+
+
 
   if (missing(x)) {
     stop("Argument \"x\" is missing, with no default")
@@ -81,6 +85,22 @@ selection <- function(x, y, q, criterion = "deviance",
     model <- gam(y ~ NULL, family = family)
   }
 
+  # Para que coja las variables del q anterior y no las vuelva
+  # a buscar (class(prevar) = vector)
+  if (is.null(prevar)) { }else{
+    xyes = c()
+    for (l in 1:(q-1)){
+      if (method == "gam" & is.factor(x[, prevar[l]]) == FALSE) {
+        xnam = paste("s(x[,", prevar[l], "])", sep = "")
+      } else {
+        xnam = paste("x[,", prevar[l], "]", sep = "")
+      }
+      xyes[l] = xnam
+
+      model <- update(model, as.formula(paste(". ~ ", paste(xyes, collapse = "+"))))
+    }
+  }
+
   fwdstep <- function(j){
     aux <<- x[ ,j]
     if (method == "gam" & is.factor(aux) == FALSE) {
@@ -105,8 +125,16 @@ selection <- function(x, y, q, criterion = "deviance",
 
 
   out <- 1:nvar
-  xyes = NULL
-  for (k in 1:q) {
+  if(is.null(prevar)){
+    xyes = NULL
+    bucle <- c(1:q)
+  }else{
+    bucle <- q
+    inside <- prevar
+    out <- out[-prevar]
+  }
+
+  for (k in bucle) {
     ic <- NULL
     if (cluster == TRUE){
       num_cores <- detectCores() - 1
@@ -199,17 +227,15 @@ selection <- function(x, y, q, criterion = "deviance",
 
   if(cluster == TRUE) {stopCluster(cl)}
 
-  # fin seleccion
-
-
   # cv
   #nfolds <- 10
   var_res <- numeric (nfolds)
   dev_cv <- numeric (nfolds)
   r2cv <- numeric (nfolds)
 
-  aux <- cvFolds(n, K = nfolds, type = "consecutive")
+  aux <- cvTools::cvFolds(n, K = nfolds, type = "consecutive")
   #test = seq(1, n, 2)
+
   for (fold in 1:nfolds){
     test <- aux$which==fold
     Wtrainning = rep(1, n)
@@ -218,19 +244,19 @@ selection <- function(x, y, q, criterion = "deviance",
     if (method == "lm") {
       formula = model$call$formula
       Mtrainning = lm(formula, weights = Wtrainning)
-   #   pred = predict(lm(formula), type = "response")
+      #  pred = predict(lm(formula), type = "response")
     }
 
     if (method == "glm") {
       formula = model$call$formula
       Mtrainning = glm(formula, family = family, weights = Wtrainning)
-    #  pred = predict(glm(formula, family = family), type = "response")
+      #  pred = predict(glm(formula, family = family), type = "response")
     }
 
     if (method == "gam") {
       formula = model$call$formula
       Mtrainning = gam(formula, family = family, weights = Wtrainning)
-    #  pred = predict(gam(formula, family = family), type = "response")
+      #  pred = predict(gam(formula, family = family), type = "response")
     }
 
     muhat = predict(Mtrainning, type = "response")
@@ -282,7 +308,7 @@ selection <- function(x, y, q, criterion = "deviance",
       var_res = sum((y[test] - muhat[test])^2)/length(test) #var_res
 
       r2cv[fold] = 1 - (var_res/(var(y[test]) * (length(test) -
-                                             1)/length(test))) #r2cv
+                                                   1)/length(test))) #r2cv
 
 
     }else{
@@ -290,7 +316,6 @@ selection <- function(x, y, q, criterion = "deviance",
     }
 
   }
-
 
 
   if(class(x) == "data.frame"){
@@ -314,34 +339,17 @@ selection <- function(x, y, q, criterion = "deviance",
               Variable_numbers = inside, Information_Criterion = icfin,
               ic = criterion, seconds = seconds, nmodels = nmodels,
               Prediction = pred)
-  # }
-
-  #   if (criterion == "R2") {
-  #     res <- list(Best_model = model, Variable_names = names1,
-  #                 Variable_numbers = inside, Information_Criterion = r2cv,
-  #                 ic = criterion, seconds = seconds, nmodels = nmodels,
-  #                 Prediction = pred)
-  #   }
-  #
-  #   if (criterion == "variance") {
-  #     res <- list(Best_model = model, Variable_names = names1,
-  #                 Variable_numbers = inside, Information_Criterion = var_res,
-  #                 ic = criterion, seconds = seconds, nmodels = nmodels,
-  #                 Prediction = pred)
-  #   }
 
 
 
 
 
 
-
-
-  #!!!!!!!!! FALTA CAMBIAR AIC Y METHODS!!!!!!!! Y MAS!!
+  #!!!!!!!!! FALTA CAMBIAR METHODS!!!!!!!! Y MAS!!
 
   if (seconds == TRUE) {
-    bestaic1 = bestaic
-    bestaicn = 0
+    bestic1 = bestic
+    besticn = 0
     cont = -1
     fin = 1
     for (h in 1:nmodels) {
@@ -354,22 +362,22 @@ selection <- function(x, y, q, criterion = "deviance",
             xnam = paste("s(x[,", inside,
                          "])", sep = "")
             xnam[z] = "s(x[,j])"
-            aic2 = NULL
+            ic2 = NULL
           } else {
             xnam = paste("x[,", inside,
                          "]", sep = "")
             xnam[z] = "x[,j]"
-            aic2 = NULL
+            ic2 = NULL
           }
           vuelta = 0
           for (j in out) {
             vuelta = vuelta + 1
             model1 <- update(model, as.formula(paste(". ~ ",
                                                      paste(xnam, collapse = "+"))))
-            aic2[vuelta] <- AIC(model1)
+            ic2[vuelta] <- deviance(model1)
           }
           if ((z == 1) & (cont == -1)) {
-            bestaic = 1e+11
+            bestic = 1e+11
             oldinside = inside
             inside[z] = out[1]
             out[1] = oldinside[1]
@@ -381,18 +389,18 @@ selection <- function(x, y, q, criterion = "deviance",
               j = 2
             }
             if (h == 1) {
-              if ((aic2[j] < bestaic) &
-                    (aic2[j] > bestaic1)) {
-                bestaic = aic2[j]
+              if ((ic2[j] < bestic) &
+                    (ic2[j] > bestic1)) {
+                bestic = ic2[j]
                 oldinside = inside
                 inside[z] = out[j]
                 out[j] = oldinside[z]
                 fin = 1
               }
             } else {
-              if ((aic2[j] < bestaic) &
-                    (aic2[j] > bestaicn)) {
-                bestaic = aic2[j]
+              if ((ic2[j] < bestic) &
+                    (ic2[j] > besticn)) {
+                bestic = ic2[j]
                 oldinside = inside
                 inside[z] = out[j]
                 out[j] = oldinside[z]
@@ -414,7 +422,7 @@ selection <- function(x, y, q, criterion = "deviance",
       model <- update(model, as.formula(paste(". ~ ",
                                               paste(xnam, collapse = "+"))))
       names2 = names(x[inside])
-      bestaicn = AIC(model)
+      besticn = deviance(model)
 
       # r2cv
 

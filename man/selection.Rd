@@ -4,8 +4,9 @@
 \alias{selection}
 \title{Selecting a subset of \code{q} variables}
 \usage{
-selection(x, y, q, criterion = "deviance", method = "lm",
-  family = "gaussian", seconds = FALSE, nmodels = 1, par = TRUE)
+selection(x, y, q, prevar = NULL, criterion = "deviance", method = "lm",
+  family = "gaussian", seconds = FALSE, nmodels = 1, nfolds = 5,
+  cluster = TRUE)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -14,6 +15,8 @@ selection(x, y, q, criterion = "deviance", method = "lm",
 
 \item{q}{An integer specifying the size of the subset of variables to be
 selected.}
+
+\item{prevar}{FALTA}
 
 \item{criterion}{The cross-validation-based information criterion to be used.
 Default is the deviance. Other functions provided are the coefficient of
@@ -33,13 +36,16 @@ a few of the best models (equivalent).}
 
 \item{nmodels}{Number of secondary models to be returned.}
 
-\item{par}{A logical value. If  \code{TRUE} (default), the
+\item{nfolds}{Number of folds for the cross-validation procedure.}
+
+\item{cluster}{A logical value. If  \code{TRUE} (default), the
 procedure is  parallelized.}
 }
 \value{
 \item{Best model}{The best model. If \code{seconds=TRUE}, it returns
- also the best alternative models.} \item{Variable name}{Names of the
- variable.} \item{Variable number}{Number of the variables.}
+ also the best alternative models.}
+ \item{Variable name}{Names of the variable.}
+ \item{Variable number}{Number of the variables.}
  \item{Information criterion}{Information criterion used and its value.}
  \item{Prediction}{The prediction of the best model.}
 }

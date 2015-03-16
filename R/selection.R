@@ -71,9 +71,19 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   inside <- integer(q)
   n = length(y)
 
+
   if(q==nvar) {
     stop('The size of subset \'q\' is the same that the number of covariates')
   }
+
+
+  if (cluster == TRUE){
+    num_cores <- detectCores() - 1
+    if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
+    cl <- makeCluster(num_cores, type = par_type)
+  }
+
+
 
   if (method == "lm") {
     model <- lm(y ~ NULL)
@@ -134,12 +144,11 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     out <- out[-prevar]
   }
 
+
+
   for (k in bucle) {
     ic <- NULL
     if (cluster == TRUE){
-      num_cores <- detectCores() - 1
-      if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-      cl <- makeCluster(num_cores, type = par_type)
       ic <- parLapply(cl = cl, out, fwdstep)
     }else{
       ic <- sapply(out, fwdstep)
@@ -183,6 +192,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
       # xnam <- names(model.frame(model))[2:length(inside)+1]
       #f1<-formula(model)
       #attr(terms(f1),"term.labels")
+
       ic <- NULL
       if (cluster == TRUE){
         ic <- parLapply(cl = cl, out, fwdstep2, bucle = f)
@@ -218,14 +228,13 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
         stop[f] = 1
       }
     }
-
     cont = cont + 1
     end = sum(stop)
   }
 
   pred <- predict(model, type = "response")
 
-  if(cluster == TRUE) {stopCluster(cl)}
+
 
   # cv
   #nfolds <- 10
@@ -318,12 +327,6 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   }
 
 
-  if(class(x) == "data.frame"){
-    names1 = names(x[inside])
-  }else{
-    allnames <- colnames(x)
-    names1 = allnames[inside]}
-  if(is.null(names1)){names1=inside}  #por si no tiene nombres
 
   if (criterion == "deviance") {
     icfin = mean(dev_cv)
@@ -332,6 +335,13 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   }else{
     icfin = mean(var_res)
   }
+
+  if(class(x) == "data.frame"){
+    names1 = names(x[inside])
+  }else{
+    allnames <- colnames(x)
+    names1 = allnames[inside]}
+  if(is.null(names1)){names1=inside}  #por si no tiene nombres
 
 
   # if (criterion == "deviance") {
@@ -342,234 +352,251 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
 
 
-
-
-
   #!!!!!!!!! FALTA CAMBIAR METHODS!!!!!!!! Y MAS!!
 
-  if (seconds == TRUE) {
-    bestic1 = bestic
-    besticn = 0
-    cont = -1
-    fin = 1
-    for (h in 1:nmodels) {
-      cont = -1
-      fin = 1
-      while (fin != 0) {
-        fin = 0
-        for (z in 1:q) {
-          if (method == "gam") {
-            xnam = paste("s(x[,", inside,
-                         "])", sep = "")
-            xnam[z] = "s(x[,j])"
-            ic2 = NULL
-          } else {
-            xnam = paste("x[,", inside,
-                         "]", sep = "")
-            xnam[z] = "x[,j]"
-            ic2 = NULL
-          }
-          vuelta = 0
-          for (j in out) {
-            vuelta = vuelta + 1
-            model1 <- update(model, as.formula(paste(". ~ ",
-                                                     paste(xnam, collapse = "+"))))
-            ic2[vuelta] <- deviance(model1)
-          }
-          if ((z == 1) & (cont == -1)) {
-            bestic = 1e+11
-            oldinside = inside
-            inside[z] = out[1]
-            out[1] = oldinside[1]
-          }
-
-          for (j in 1:length(out)) {
-            if ((z == 1) & (cont == -1) &
-                  (j == 1)) {
-              j = 2
-            }
-            if (h == 1) {
-              if ((ic2[j] < bestic) &
-                    (ic2[j] > bestic1)) {
-                bestic = ic2[j]
-                oldinside = inside
-                inside[z] = out[j]
-                out[j] = oldinside[z]
-                fin = 1
-              }
-            } else {
-              if ((ic2[j] < bestic) &
-                    (ic2[j] > besticn)) {
-                bestic = ic2[j]
-                oldinside = inside
-                inside[z] = out[j]
-                out[j] = oldinside[z]
-                fin = 1
-              }
-            }
-          }
-        }
-        cont = cont + 1
-      }
-      if (method == "gam") {
-        xin = paste("s(x[,", inside, "])",
-                    sep = "")
-      } else {
-        xin = paste("x[,", inside, "]",
-                    sep = "")
-      }
-      xnam = xin
-      model <- update(model, as.formula(paste(". ~ ",
-                                              paste(xnam, collapse = "+"))))
-      names2 = names(x[inside])
-      besticn = deviance(model)
-
-      # r2cv
-
-      test = seq(1, n, 2)
-      Wtrainning = rep(1, n)
-      Wtrainning[test] = 0
-
-
-      if (method == "lm") {
-        formula = model$call$formula
-        Mtrainning = lm(formula, weights = Wtrainning)
-        pred = predict(lm(formula), type = "response")
-      }
-
-      if (method == "glm") {
-        formula = model$call$formula
-        Mtrainning = glm(formula, weights = Wtrainning)
-        pred = predict(glm(formula), type = "response")
-      }
-
-      if (method == "gam") {
-        formula = model$call$formula
-        Mtrainning = gam(formula, weights = Wtrainning)
-        pred = predict(gam(formula), type = "response")
-      }
-
-      if (method == "glm" & family == "binomial") {
-        formula = model$call$formula
-        Mtrainning = glm(formula, family = "binomial",
-                         weights = Wtrainning)
-        pred = predict(glm(formula, family = "binomial"),
-                       type = "response")
-      }
-
-      if (method == "glm" & family == "poisson") {
-        formula = model$call$formula
-        Mtrainning = glm(formula, family = "poisson",
-                         weights = Wtrainning)
-        pred = predict(glm(formula, family = "poisson"),
-                       type = "response")
-      }
-
-      if (method == "gam" & family == "poisson") {
-        formula = model$call$formula
-        # formula=model$Best_model$formula
-        Mtrainning = gam(formula, family = "poisson",
-                         weights = Wtrainning)
-        pred = predict(gam(formula), type = "response")
-      }
-
-      if (method == "gam" & family == "binomial") {
-        formula = model$call$formula
-        # formula=model$Best_model$formula
-        Mtrainning = gam(formula, family = "binomial",
-                         weights = Wtrainning)
-        pred = predict(gam(formula), type = "response")
-      }
-
-
-      #             if (method == "lm") {
-      #                 formula = model$call$formula
-      #                 Mtrainning = lm(formula, weights = Wtrainning)
-      #             }
-      #
-      #             if (method == "glm" & family == "binomial") {
-      #                 formula = model$formula
-      #                 Mtrainning = glm(formula, family = "binomial",
-      #                   weights = Wtrainning)
-      #             }
-      #
-      #             if (method == "glm" & family == "poisson") {
-      #                 formula = model$formula
-      #                 Mtrainning = glm(formula, family = "poisson",
-      #                   weights = Wtrainning)
-      #             }
-      #
-      #             if (method == "gam") {
-      #                 formula = model$formula
-      #                 Mtrainning = gam(formula, weights = Wtrainning)
-      #             }
-
-      muhat = predict(Mtrainning, type = "response")
-
-      var_res = sum((y[test] - muhat[test])^2)/length(test)
-      r2cv = 1 - (var_res/(var(y[test]) *
-                             (length(test) - 1)/length(test)))
-
-      muhat_test = muhat[test]
-      y_test = y[test]
-
-      if (family == "gaussian")
-        dev_cv = sum((y_test - muhat_test)^2)
-
-      if (family == "binomial") {
-        ii = muhat_test < 1e-04
-        muhat_test[ii] = 1e-04
-        ii = muhat_test > 0.9999
-        muhat_test[ii] = 0.9999
-        entrop = rep(0, length(test))
-        ii = (1 - y_test) * y_test > 0
-        entrop[ii] = 2 * y_test[ii] * log(y_test[ii]) +
-          (1 - y_test[ii]) * log(1 - y_test[ii])
-        entadd = 2 * y_test * log(muhat) +
-          (1 - y_test) * log(1 - muhat_test)
-        dev_cv = sum(entrop - entadd)
-      }
-
-      if (family == "poisson") {
-        tempf = muhat_test
-        ii = tempf < 1e-04
-        tempf[ii] = 1e-04
-        dev_cv = 2 * (-y_test * log(tempf) -
-                        (y_test - muhat_test))
-        ii = y_test > 0
-        dev_cv[ii] = dev_cv[ii] + (2 * y_test[ii] *
-                                     log(y_test[ii]))
-        dev_cv = sum(dev_cv)
-      }
-
-
-
-      if (criterion == "deviance") {
-        res2 <- list(Alternative_model = model,
-                     Variable_names = names2, Variable_numbers = inside,
-                     Information_Criterion = dev_cv,
-                     ic = criterion)
-      }
-
-      if (criterion == "R2") {
-        res2 <- list(Alternative_model = model,
-                     Variable_names = names2, Variable_numbers = inside,
-                     Information_Criterion = r2cv,
-                     ic = criterion)
-      }
-
-      if (criterion == "variance") {
-        res2 <- list(Alternative_model = model,
-                     Variable_names = names2, Variable_numbers = inside,
-                     Information_Criterion = var_res,
-                     ic = criterion)
-      }
-
-
-      res = c(res, res2)
-    }
-  }
+ # if (seconds == TRUE) {
+#     bestic1 = bestic
+#     besticn = 0
+#     cont = -1
+#     fin = 1
+#     for (h in 1:nmodels) {
+#       cont = -1
+#       fin = 1
+#       while (fin != 0) {
+#         fin = 0
+#         for (zz in 1:q) {
+#
+#           #para coger en un vector los nombres
+#           for (num in 1:length(inside)) {
+#             if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
+#               xnam[num] = paste("s(x[,", inside[num], "])", sep = "")
+#             } else {
+#               xnam[num] = paste("x[,", inside[num], "]", sep = "")
+#             }
+#           }
+#
+#           ic2 <- NULL
+#           if (cluster == TRUE){
+#             ic2 <- parLapply(cl = cl, out, fwdstep2, bucle = zz)
+#           }else{
+#             ic2 <- sapply(out, fwdstep2, bucle = zz)
+#           }
+#
+#
+#             if ((zz == 1) & (cont == -1)) {
+#               bestic = 1e+11
+#               oldinside = inside
+#               inside[zz] = out[1]
+#               out[1] = oldinside[1]
+#             }
+#
+#             for (j in 1:length(out)) {
+#               if ((zz == 1) & (cont == -1) &
+#                     (j == 1)) {
+#                 j = 2
+#               }
+#               if (h == 1) {
+#                 if ((ic2[j] < bestic) &
+#                       (ic2[j] > bestic1)) {
+#                   bestic = ic2[j]
+#                   oldinside = inside
+#                   inside[zz] = out[j]
+#                   out[j] = oldinside[zz]
+#                   fin = 1
+#                 }
+#               } else {
+#                 if ((ic2[j] < bestic) &
+#                       (ic2[j] > besticn)) {
+#                   bestic = ic2[j]
+#                   oldinside = inside
+#                   inside[zz] = out[j]
+#                   out[j] = oldinside[zz]
+#                   fin = 1
+#                 }
+#               }
+#             }
+#           }
+#         cont = cont + 1
+#       }
+#
+#     xin <- NULL
+#     for (num in 1:length(inside)) {
+#       if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
+#         xin[num] = paste("s(x[,", inside[num], "])", sep = "")
+#       } else {
+#         xin[num] = paste("x[,", inside[num], "]", sep = "")
+#       }
+#     }
+#
+#
+#
+#       xnam = xin
+#       model <- update(model, as.formula(paste(". ~ ",
+#                                               paste(xnam, collapse = "+"))))
+#
+#
+#       if(class(x) == "data.frame"){
+#         names2 = names(x[inside])
+#       }else{
+#         allnames <- colnames(x)
+#         names2 = allnames[inside]}
+#       if(is.null(names2)){names2=inside}  #por si no tiene nombres
+#
+#       besticn = deviance(model)
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#       # r2cv
+#       test = seq(1, n, 2)
+#       Wtrainning = rep(1, n)
+#       Wtrainning[test] = 0
+#
+#
+#       if (method == "lm") {
+#         formula = model$call$formula
+#         Mtrainning = lm(formula, weights = Wtrainning)
+#         pred = predict(lm(formula), type = "response")
+#       }
+#
+#       if (method == "glm") {
+#         formula = model$call$formula
+#         Mtrainning = glm(formula, weights = Wtrainning)
+#         pred = predict(glm(formula), type = "response")
+#       }
+#
+#       if (method == "gam") {
+#         formula = model$call$formula
+#         Mtrainning = gam(formula, weights = Wtrainning)
+#         pred = predict(gam(formula), type = "response")
+#       }
+#
+#       if (method == "glm" & family == "binomial") {
+#         formula = model$call$formula
+#         Mtrainning = glm(formula, family = "binomial",
+#                          weights = Wtrainning)
+#         pred = predict(glm(formula, family = "binomial"),
+#                        type = "response")
+#       }
+#
+#       if (method == "glm" & family == "poisson") {
+#         formula = model$call$formula
+#         Mtrainning = glm(formula, family = "poisson",
+#                          weights = Wtrainning)
+#         pred = predict(glm(formula, family = "poisson"),
+#                        type = "response")
+#       }
+#
+#       if (method == "gam" & family == "poisson") {
+#         formula = model$call$formula
+#         # formula=model$Best_model$formula
+#         Mtrainning = gam(formula, family = "poisson",
+#                          weights = Wtrainning)
+#         pred = predict(gam(formula), type = "response")
+#       }
+#
+#       if (method == "gam" & family == "binomial") {
+#         formula = model$call$formula
+#         # formula=model$Best_model$formula
+#         Mtrainning = gam(formula, family = "binomial",
+#                          weights = Wtrainning)
+#         pred = predict(gam(formula), type = "response")
+#       }
+#
+#
+#       #             if (method == "lm") {
+#       #                 formula = model$call$formula
+#       #                 Mtrainning = lm(formula, weights = Wtrainning)
+#       #             }
+#       #
+#       #             if (method == "glm" & family == "binomial") {
+#       #                 formula = model$formula
+#       #                 Mtrainning = glm(formula, family = "binomial",
+#       #                   weights = Wtrainning)
+#       #             }
+#       #
+#       #             if (method == "glm" & family == "poisson") {
+#       #                 formula = model$formula
+#       #                 Mtrainning = glm(formula, family = "poisson",
+#       #                   weights = Wtrainning)
+#       #             }
+#       #
+#       #             if (method == "gam") {
+#       #                 formula = model$formula
+#       #                 Mtrainning = gam(formula, weights = Wtrainning)
+#       #             }
+#
+#       muhat = predict(Mtrainning, type = "response")
+#
+#       var_res = sum((y[test] - muhat[test])^2)/length(test)
+#       r2cv = 1 - (var_res/(var(y[test]) *
+#                              (length(test) - 1)/length(test)))
+#
+#       muhat_test = muhat[test]
+#       y_test = y[test]
+#
+#       if (family == "gaussian")
+#         dev_cv = sum((y_test - muhat_test)^2)
+#
+#       if (family == "binomial") {
+#         ii = muhat_test < 1e-04
+#         muhat_test[ii] = 1e-04
+#         ii = muhat_test > 0.9999
+#         muhat_test[ii] = 0.9999
+#         entrop = rep(0, length(test))
+#         ii = (1 - y_test) * y_test > 0
+#         entrop[ii] = 2 * y_test[ii] * log(y_test[ii]) +
+#           (1 - y_test[ii]) * log(1 - y_test[ii])
+#         entadd = 2 * y_test * log(muhat) +
+#           (1 - y_test) * log(1 - muhat_test)
+#         dev_cv = sum(entrop - entadd)
+#       }
+#
+#       if (family == "poisson") {
+#         tempf = muhat_test
+#         ii = tempf < 1e-04
+#         tempf[ii] = 1e-04
+#         dev_cv = 2 * (-y_test * log(tempf) -
+#                         (y_test - muhat_test))
+#         ii = y_test > 0
+#         dev_cv[ii] = dev_cv[ii] + (2 * y_test[ii] *
+#                                      log(y_test[ii]))
+#         dev_cv = sum(dev_cv)
+#       }
+#
+#
+#
+#       if (criterion == "deviance") {
+#         res2 <- list(Alternative_model = model,
+#                      Variable_names = names2, Variable_numbers = inside,
+#                      Information_Criterion = dev_cv,
+#                      ic = criterion)
+#       }
+#
+#       if (criterion == "R2") {
+#         res2 <- list(Alternative_model = model,
+#                      Variable_names = names2, Variable_numbers = inside,
+#                      Information_Criterion = r2cv,
+#                      ic = criterion)
+#       }
+#
+#       if (criterion == "variance") {
+#         res2 <- list(Alternative_model = model,
+#                      Variable_names = names2, Variable_numbers = inside,
+#                      Information_Criterion = var_res,
+#                      ic = criterion)
+#       }
+#
+#
+#       res = c(res, res2)
+#     }
+#   #}
   class(res) <- "selection"
   return(res)
-
+  if(cluster == TRUE) {stopCluster(cl)}
 }

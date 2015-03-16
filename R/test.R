@@ -1,3 +1,4 @@
+
 #'Bootstrap based test for covariate selection
 #'@description Function that applies a bootstrap based test for covariate
 #'  selection. It helps to determine the number of variables to be included in
@@ -16,7 +17,7 @@
 #'  one null hypothesis, given by the argument  \code{q}.
 #'@param q If  \code{unique} is \code{TRUE}, \code{q} is the size of the subset
 #'  of variables to be tested.
-#'@param bootseed See to be used in the bootstrap procedure.
+#'@param bootseed Seed to be used in the bootstrap procedure.
 #'@param cluster A logical value. If  \code{TRUE} (default), the testing
 #'  procedure is  parallelized.
 #'@details In a regression framework, let \eqn{X_1, X_2, \ldots, X_p},  a set of
@@ -54,173 +55,172 @@
 #'@importFrom parallel stopCluster
 #'@export
 
+test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
+                 speedup = TRUE, unique = FALSE, q = 1, bootseed = NULL,
+                 cluster = TRUE){
 
-test <- function(x, y, method = "lm", family = "gaussian",
-                 nboot = 50, speedup = TRUE, unique = FALSE,
-                 q = 1, bootseed = NULL, cluster = TRUE) {
-
-  # Statistics T
-  Tvalue <- function(xy, qT = qh0, optionT = method,
-                     speed = speedup) {
-    x = xy[, 2:ncol(xy)]
-    y = xy[, 1]
-    var_res = NULL
-    nvar = ncol(x)
-    x = as.data.frame(x)
-    aux = selection(x, y, q = qT, method = optionT,
-                    family = family, seconds = FALSE, criterion = "deviance", nfolds = 1, cluster = FALSE)
-   # if (!exists("pred")) {pred <<- aux$Prediction}
-    pred <<- aux$Prediction
-    sel_num = aux$Variable_number
-    #res = y - pred
-    res = aux$Best_model$residuals
-    if (speed == TRUE & qT!=(nvar-1)) {
-      xno = x[, -sel_num]
-      var_imp = selection(xno, res, q = 1, method = optionT,
-                          family = "gaussian", seconds = FALSE,
-                          criterion = "deviance", cluster = FALSE)$Variable_number
-      xres = xno[, c(var_imp)]
-    } else {
-      xres = x[, -sel_num]
-    }
-    data_res = cbind(res, xres)
-
-    if(optionT == "gam"){
-      if(class(xres) == "numeric"){xnam <- paste("s(xres)", sep = "")}else{
-        xnam <- paste("s(xres[,", 1:ncol(xres),"])", sep = "")}
-      fmla <- as.formula(paste("res ~ ", paste(xnam, collapse= "+")))
-      pred1 <- gam(fmla)
-    }else{
-      pred1 <- glm(res ~ ., family = "gaussian", data = as.data.frame(data_res))
-    }
-
-    pred1 <- predict(pred1, type = "response")
-    T = sum(abs(pred1))
-  }
-  ##############################################
-
-  #environment(Tvalue) <- .GlobalEnv
-
-  nvar = ncol(x)
-  n = length(y)
-  xydata = cbind(y, x)
-  pvalue = c()
-  Decision = c()
-  Hypothesis = c()
-  T = c()
-  ii = 1
-  if (unique == FALSE) {
-    bucle = c(1:(nvar - 1))
-  } else {
-    bucle = q
-  }
-  for (qh0 in bucle) {
-    print(paste("Processing IC bootstrap for H_0 (",
-                qh0, ")..."), sep = "")
-    T[ii] = Tvalue(xy = xydata, qT = qh0)
-    muhatg = pred  #lo saco de la funcion Tvalue bajo H_0
-    muhatg[muhatg < 0] = 0
-
-
-    # Bootstrap
-    ################################
-    #registerDoParallel(cl)
-    # clusterExport(cl, "Tvalue")
-    # xydata <- cbind(y, x)
-    # clusterExport(cl, "xydata")
-    #clusterExport(cl, "qh0")
-    ###########################
-
-
-    # Bootstrap
-
-    set.seed(bootseed)
-
-    if (family == "gaussian") {
-      errg = y - muhatg
-      err1 = errg * (1 - sqrt(5))/2
-      err2 = errg * (1 + sqrt(5))/2
-
-      funreplicate <- function(){
-        yaux <- rbinom(n, 1, prob = (5 + sqrt(5))/10)
-        return(muhatg + (err1 * yaux + err2 * (1 - yaux)))
+    # Statistics T
+    Tvalue <- function(xy, qT = qh0, optionT = method,
+                       speed = speedup, prevars = NULL) {
+      x = xy[, 2:ncol(xy)]
+      y = xy[, 1]
+      var_res = NULL
+      nvar = ncol(x)
+      x = as.data.frame(x)
+      aux = selection(x, y, q = qT, prevar = prevars, method = optionT,
+                      family = family, seconds = FALSE, criterion = "deviance", nfolds = 2, cluster = FALSE)
+     # if (!exists("pred")) {pred <<- aux$Prediction}
+     pred <<- aux$Prediction
+     sel_num <<- aux$Variable_number
+      #res = y - pred
+      res = aux$Best_model$residuals
+      if (speed == TRUE & qT!=(nvar-1)) {
+        xno = x[, -sel_num]
+        var_imp = selection(xno, res, q = 1, method = optionT,
+                            family = "gaussian", seconds = FALSE,
+                            criterion = "deviance", cluster = FALSE)$Variable_number
+        xres = xno[, c(var_imp)]
+      } else {
+        xres = x[, -sel_num]
       }
-      yb <- replicate(nboot,funreplicate())
+      data_res = cbind(res, xres)
 
-      funapply<-function(y){Tvalue(xy = cbind(y,xydata[,-1]), qT = qh0)}
-      # environment(funapply) <- test()
-
-      ## for parallel
-      if (cluster==TRUE){
-        num_cores <- detectCores() - 1
-        if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-        cl<-makeCluster(num_cores, type = par_type)
-        Tboot <- parCapply(cl=cl,yb,funapply)
-        stopCluster(cl)
+      if(optionT == "gam"){
+        if(class(xres) == "numeric"){xnam <- paste("s(xres)", sep = "")}else{
+          xnam <- paste("s(xres[,", 1:ncol(xres),"])", sep = "")}
+        fmla <- as.formula(paste("res ~ ", paste(xnam, collapse= "+")))
+        pred1 <- gam(fmla)
       }else{
-        Tboot <- apply(yb,2,funapply)
+        pred1 <- glm(res ~ ., family = "gaussian", data = as.data.frame(data_res))
       }
+
+      pred1 <- predict(pred1, type = "response")
+      T = sum(abs(pred1))
     }
 
 
 
-#FALTA paralelizacion a partir de aquí
 
-    if (family == "binomial") {
-      for (iboot in 1:nboot) {
-        # yaux=rbinom(n, 1, prob=(5+sqrt(5))/10)
-        for (irow in 1:n) {
-          yb[irow] = rbinom(1, 1, prob = muhatg[irow])
+
+
+
+      nvar = ncol(x)
+      n = length(y)
+      xydata = cbind(y, x)
+      pvalue = c()
+      Decision = c()
+      Hypothesis = c()
+      T = c()
+      ii = 1
+      if (unique == FALSE) {
+        bucle = c(1:(nvar - 1))
+      } else {
+        bucle = q
+      }
+      for (qh0 in bucle) {
+        print(paste("Processing IC bootstrap for H_0 (",
+                    qh0, ")..."), sep = "")
+        if(isTRUE(unique)){pre == NULL}else{
+          if(qh0 == 1){pre = NULL}else{pre = sel_numg}
         }
-        #   yb
-        #  print(T[ii])
-        #  print(iboot)
-        aux = cbind(yb, xydata[, -1])
-        Tboot[iboot] = Tvalue(xy = aux,
-                              qT = qh0)
-        print(Tboot[iboot])
-      }
-    }
+        T[ii] = Tvalue(xy = xydata, qT = qh0, prevars = pre)
+        sel_numg<- sel_num # lo saco de la funcion Tvalue bajo H_0
+        muhatg = pred  #lo saco de la funcion Tvalue bajo H_0
+        muhatg[muhatg < 0] = 0
 
-    if (family == "poisson") {
-      for (iboot in 1:nboot) {
-        # yaux=rbinom(n, 1, prob=(5+sqrt(5))/10)
-        for (irow in 1:n) {
-          yb[irow] = rpois(1, lambda = muhatg[irow])
+
+        # Bootstrap
+        ################################
+        #registerDoParallel(cl)
+        # clusterExport(cl, "Tvalue")
+        # xydata <- cbind(y, x)
+        # clusterExport(cl, "xydata")
+        #clusterExport(cl, "qh0")
+        ###########################
+
+
+        # Bootstrap
+
+        set.seed(bootseed)
+
+        if (family == "gaussian") {
+          errg = y - muhatg
+          err1 = errg * (1 - sqrt(5))/2
+          err2 = errg * (1 + sqrt(5))/2
+
+          funreplicate <- function(){
+            yaux <- rbinom(n, 1, prob = (5 + sqrt(5))/10)
+            return(muhatg + (err1 * yaux + err2 * (1 - yaux)))
+          }
+          yb <- replicate(nboot,funreplicate())
+
+          funapply<-function(y){Tvalue(xy = cbind(y,xydata[,-1]), qT = qh0, prevars = NULL)}
+          # environment(funapply) <- test()
+
+          ## for parallel
+          if (cluster==TRUE){
+            num_cores <- detectCores() - 1
+            if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
+            cl<-makeCluster(num_cores, type = par_type)
+            Tboot <- parCapply(cl=cl,yb,funapply)
+            stopCluster(cl)
+          }else{
+            Tboot <- apply(yb,2,funapply)
+          }
         }
-        aux = cbind(yb, xydata[, -1])
-        Tboot[iboot] = Tvalue(xy = aux,
-                              qT = qh0)
+
+
+
+    #FALTA paralelizacion a partir de aquí
+
+        if (family == "binomial") {
+          for (iboot in 1:nboot) {
+            # yaux=rbinom(n, 1, prob=(5+sqrt(5))/10)
+            for (irow in 1:n) {
+              yb[irow] = rbinom(1, 1, prob = muhatg[irow])
+            }
+            #   yb
+            #  print(T[ii])
+            #  print(iboot)
+            aux = cbind(yb, xydata[, -1])
+            Tboot[iboot] = Tvalue(xy = aux,
+                                  qT = qh0)
+            print(Tboot[iboot])
+          }
+        }
+
+        if (family == "poisson") {
+          for (iboot in 1:nboot) {
+            # yaux=rbinom(n, 1, prob=(5+sqrt(5))/10)
+            for (irow in 1:n) {
+              yb[irow] = rpois(1, lambda = muhatg[irow])
+            }
+            aux = cbind(yb, xydata[, -1])
+            Tboot[iboot] = Tvalue(xy = aux,
+                                  qT = qh0)
+          }
+        }
+
+
+        pvalue[ii] = sum(Tboot >= T[ii])/nboot
+
+        if (pvalue[ii] >= 0.05) {
+          Decision[ii] = "Accepted"
+        } else {
+          Decision[ii] = "Rejected"
+        }
+        Hypothesis[ii] = paste("H_0 (", qh0, ")", sep = "")
+        T[ii] = round(T[ii], 2)
+        ii = ii + 1
+        if (Decision[ii - 1] == "Accepted") {break}
       }
-    }
 
-
-    pvalue[ii] = sum(Tboot >= T[ii])/nboot
-
-    if (pvalue[ii] >= 0.05) {
-      Decision[ii] = "Accepted"
-    } else {
-      Decision[ii] = "Rejected"
-    }
-    Hypothesis[ii] = paste("H_0 (", qh0, ")",
-                           sep = "")
-    T[ii] = round(T[ii], 2)
-    ii = ii + 1
-    if (Decision[ii - 1] == "Accepted") {
-      break
-    }
-  }
+      m = cbind(Hypothesis = Hypothesis, Statistic = T, pvalue = pvalue, Decision = Decision)
+      cat("\n*************************************\n")
+    return(as.data.frame(m))
 
 
 
 
-  m = cbind(Hypothesis = Hypothesis, Statistic = T,
-            pvalue = pvalue, Decision = Decision)
-  cat("\n*************************************\n")
-  return(as.data.frame(m))
 
 }
-
-
-
-

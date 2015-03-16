@@ -5,7 +5,7 @@
 \title{Selecting variables for several subset sizes}
 \usage{
 qselection(x, y, qvector, criterion = "deviance", method = "lm",
-  family = "gaussian")
+  family = "gaussian", nfolds = 5, cluster = TRUE)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -26,11 +26,16 @@ i.e., linear models (\code{"lm"}), generalized additive models
 \item{family}{A description of the error distribution and link function to be
 used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 (\code{"poisson"}).}
+
+\item{nfolds}{Number of folds for the cross-validation procedure.}
+
+\item{cluster}{A logical value. If  \code{TRUE} (default), the
+procedure is  parallelized.}
 }
 \value{
-\item{q}{A vector of subset sizes.} \item{criterion }{A vector of
-Information criterion values.} \item{selection }{Selected variables for each
-size.}
+\item{q}{A vector of subset sizes.}
+\item{criterion}{A vector of Information criterion values.}
+\item{selection}{Selected variables for each size.}
 }
 \description{
 Function that enables to obtain the best variables for more than

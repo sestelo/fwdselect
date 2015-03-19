@@ -37,6 +37,7 @@
 
 qselection = function(x, y, qvector, criterion = "deviance",
     method = "lm", family = "gaussian", nfolds = 5, cluster = TRUE) {
+
     if (missing(x)) {
         stop("Argument \"x\" is missing, with no default")
     }
@@ -47,36 +48,29 @@ qselection = function(x, y, qvector, criterion = "deviance",
         stop("Argument \"qvector\" is missing, with no default")
     }
 
-    in_c = c()
-    var = c()
-    qq = c()
-    cont = 0
-    res = c()
+    in_c <- c()
+    var <- c()
+    qq <- c()
+    cont <- 0
+    res <- c()
     for (q in qvector) {
-        cont = cont + 1
+        cont <- cont + 1
         if (q == qvector[1]) {
-          prevar = NULL
+          prevar <- NULL
         }else{
-          prevar = aux$Variable_numbers
-                        #  prevar = NULL
-                        }
-                     #   if (cluster == TRUE){
-                      #    num_cores <- detectCores() - 1
-                       #   if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-                        #  cl <- makeCluster(num_cores, type = par_type)
-                        #}
-        aux = selection(x = x, y = y, q = q, prevar = prevar, criterion = criterion,
+          prevar <- aux$Variable_numbers
+        }
+        aux <- selection(x = x, y = y, q = q, prevar = prevar, criterion = criterion,
             method = method, family = family, seconds = F, cluster = cluster)
-                       #  if(cluster == TRUE) {stopCluster(cl)}
-        in_c[cont] = round(aux$Information_Criterion,
+        in_c[cont] <- round(aux$Information_Criterion,
             3)
-        var[cont] = toString(aux$Variable_names)
-        qq[cont] = q
+        var[cont] <- toString(aux$Variable_names)
+        qq[cont] <- q
         print(paste("Selecting subset of size",
             q, "...", sep = " "))
     }
-    res = data.frame(qq, in_c, var)
-    colnames(res) = c("q", paste(criterion), "selection")
+    res <- data.frame(qq, in_c, var)
+    colnames(res) <- c("q", paste(criterion), "selection")
     class(res) <- "qselection"
     return(res)
 }

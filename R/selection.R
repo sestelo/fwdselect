@@ -69,14 +69,14 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
   nvar <- ncol(x)
   inside <- integer(q)
-  n = length(y)
+  n <- length(y)
 
 
-  if(q==nvar) {
+  if(q == nvar) {
     stop('The size of subset \'q\' is the same that the number of covariates')
   }
 
-
+  # for paralellize
   if (cluster == TRUE){
     num_cores <- detectCores() - 1
     if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
@@ -95,8 +95,10 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     model <- gam(y ~ NULL, family = family)
   }
 
-  # Para que coja las variables del q anterior y no las vuelva
-  # a buscar (class(prevar) = vector)
+
+
+  # To use the variable of the previous q and
+  # it have not to look for again (class(prevar) = vector)
   if (is.null(prevar)) { }else{
     xyes = c()
     for (l in 1:(q-1)){
@@ -106,10 +108,12 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
         xnam = paste("x[,", prevar[l], "]", sep = "")
       }
       xyes[l] = xnam
-
       model <- update(model, as.formula(paste(". ~ ", paste(xyes, collapse = "+"))))
     }
   }
+
+
+
 
   fwdstep <- function(j){
     aux <<- x[ ,j]
@@ -120,6 +124,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     }
     return(deviance(models))
   }
+
 
 
   fwdstep2 <- function(j, bucle){
@@ -162,22 +167,25 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     } else {
       xnam = paste("x[,", inside[[k]], "]", sep = "")
     }
+
     xyes[k] = xnam
 
     model <- update(model, as.formula(paste(". ~ ", paste(xyes, collapse = "+"))))
     bestic = deviance(model)
   }
 
-  #hasta aquí introduce las primeras q variables
+
+  ## Here it have introduced the first q variables
+
 
   stop <- integer(q)
-  end = 1
+  end <- 1
   if (q == 1 | q == nvar) {
-    end = 0
+    end <- 0
   }
-  cont = 0
+  cont <- 0
   while (end != 0) {
-    stop = 0
+    stop <- 0
     for (f in 1:q) {
 
       #para coger en un vector los nombres
@@ -200,30 +208,21 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
         ic <- sapply(out, fwdstep2, bucle = f)
       }
 
-      #   for (j in out) {
-      #    model1 <- update(model, as.formula(paste(". ~ ", paste(xnam, collapse = "+"))))
-      #   ic <- c(ic, deviance(model1))
-      #  }
-
       ii = which.min(ic)
       if (ic[ii] >= bestic) {
-        stop[f] = 0
+        stop[f] <- 0
       } else {
         ii = which.min(ic)
         oldinside = inside
         inside[f] = out[ii]
         out[ii] = oldinside[f]
-        if (method == "gam" & is.factor(x[,
-                                          inside[f]]) == FALSE) {
-          xin = paste("s(x[,", inside[f],
-                      "])", sep = "")
+        if (method == "gam" & is.factor(x[ ,inside[f]]) == FALSE) {
+          xin = paste("s(x[,", inside[f], "])", sep = "")
         } else {
-          xin = paste("x[,", inside[f],
-                      "]", sep = "")
+          xin = paste("x[,", inside[f], "]", sep = "")
         }
         xnam[f] = xin
-        model <- update(model, as.formula(paste(". ~ ",
-                                                paste(xnam, collapse = "+"))))
+        model <- update(model, as.formula(paste(". ~ ", paste(xnam, collapse = "+"))))
         bestic = deviance(model)
         stop[f] = 1
       }
@@ -235,106 +234,186 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   pred <- predict(model, type = "response")
 
 
-
   # cv
-  #nfolds <- 10
-  var_res <- numeric (nfolds)
-  dev_cv <- numeric (nfolds)
-  r2cv <- numeric (nfolds)
 
-  aux <- cvTools::cvFolds(n, K = nfolds, type = "consecutive")
-  #test = seq(1, n, 2)
+  cv <- function(nfolds){
+    #function for calculate ic for each fold
+    eachfold <- function(fold){
+      test <- aux$which==fold
+      Wtrainning = rep(1, n)
+      Wtrainning[test] = 0
+      formula <- model$call$formula
+      dat <- data.frame(Wtrainning = Wtrainning)
 
-  for (fold in 1:nfolds){
-    test <- aux$which==fold
-    Wtrainning = rep(1, n)
-    Wtrainning[test] = 0
+      if (method == "lm") {
+        Mtrainning = lm(formula, weights = Wtrainning, data = dat)
+      }
 
-    if (method == "lm") {
-      formula = model$call$formula
-      Mtrainning = lm(formula, weights = Wtrainning)
-      #  pred = predict(lm(formula), type = "response")
-    }
+      if (method == "glm") {
+        Mtrainning = glm(formula, family = family, weights = Wtrainning)
+      }
 
-    if (method == "glm") {
-      formula = model$call$formula
-      Mtrainning = glm(formula, family = family, weights = Wtrainning)
-      #  pred = predict(glm(formula, family = family), type = "response")
-    }
+      if (method == "gam") {
+        Mtrainning = gam(formula, family = family, weights = Wtrainning)
+      }
 
-    if (method == "gam") {
-      formula = model$call$formula
-      Mtrainning = gam(formula, family = family, weights = Wtrainning)
-      #  pred = predict(gam(formula, family = family), type = "response")
-    }
-
-    muhat = predict(Mtrainning, type = "response")
-    muhat_test = muhat[test]
-    y_test = y[test]
-    if (family == "binomial") {y = as.numeric(as.character(y))}
+      muhat = predict(Mtrainning, type = "response")
+      muhat_test = muhat[test]
+      y_test = y[test]
+      if (family == "binomial") {y = as.numeric(as.character(y))}
 
 
-    if (criterion == "deviance") {
-
-      if (family == "gaussian")
-        dev_cv = sum((y_test - muhat_test)^2)
-
-      if (family == "binomial") {
-        ii = muhat_test < 1e-04
-        muhat_test[ii] = 1e-04
-        ii = muhat_test > 0.9999
-        muhat_test[ii] = 0.9999
-        entrop = rep(0, length(test))
-        ii = (1 - y_test) * y_test > 0
-        if (sum(ii) > 0) {
-          entrop[ii] = 2 * (y_test[ii] * log(y_test[ii])) +
-            ((1 - y_test[ii]) * log(1 - y_test[ii]))
-        } else {
-          entrop = 0
+      if (criterion == "deviance") {
+        if (family == "gaussian"){
+          dev_cv = sum((y_test - muhat_test)^2)
         }
-        entadd = 2 * y_test * log(muhat_test) +
-          (1 - y_test) * log(1 - muhat_test)
-        dev_cv = sum(entrop - entadd)
+        if (family == "binomial") {
+          ii = muhat_test < 1e-04
+          muhat_test[ii] = 1e-04
+          ii = muhat_test > 0.9999
+          muhat_test[ii] = 0.9999
+          entrop = rep(0, length(test))
+          ii = (1 - y_test) * y_test > 0
+          if (sum(ii) > 0) {
+            entrop[ii] = 2 * (y_test[ii] * log(y_test[ii])) +
+              ((1 - y_test[ii]) * log(1 - y_test[ii]))
+          } else {
+            entrop = 0
+          }
+          entadd = 2 * y_test * log(muhat_test) +
+            (1 - y_test) * log(1 - muhat_test)
+          dev_cv = sum(entrop - entadd)
+        }
+        if (family == "poisson") {
+          tempf = muhat_test
+          ii = tempf < 1e-04
+          tempf[ii] = 1e-04
+          dev_cv = 2 * (-y_test * log(tempf) - (y_test - muhat_test))
+          ii = y_test > 0
+          dev_cv[ii] = dev_cv[ii] + (2 * y_test[ii] * log(y_test[ii]))
+          dev_cv = sum(dev_cv)
+        }
+      } else if (criterion == "R2") {
+        var_res = sum((y[test] - muhat[test])^2)/length(test)
+        r2cv = 1 - (var_res/(var(y[test]) * (length(test) - 1)/length(test)))
+      }else{
+        var_res = sum((y[test] - muhat[test])^2)/length(test)
       }
-
-      if (family == "poisson") {
-        tempf = muhat_test
-        ii = tempf < 1e-04
-        tempf[ii] = 1e-04
-        dev_cv = 2 * (-y_test * log(tempf) - (y_test -
-                                                muhat_test))
-        ii = y_test > 0
-        dev_cv[ii] = dev_cv[ii] + (2 * y_test[ii] *
-                                     log(y_test[ii]))
-        dev_cv[fold] = sum(dev_cv)
+      if (criterion == "deviance") {
+        return(dev_cv)
+      } else if (criterion == "R2") {
+        return(r2cv)
+      }else{
+        return(var_res)
       }
-
-
-
-
-    } else if (criterion == "R2") {
-
-      var_res = sum((y[test] - muhat[test])^2)/length(test) #var_res
-
-      r2cv[fold] = 1 - (var_res/(var(y[test]) * (length(test) -
-                                                   1)/length(test))) #r2cv
-
-
-    }else{
-      var_res[fold] = sum((y[test] - muhat[test])^2)/length(test) #var_res
     }
 
+    aux <- cvTools::cvFolds(n, K = nfolds, type = "consecutive")
+    if (cluster == TRUE){
+      cv_ics <- parLapply(cl = cl, 1:nfolds, eachfold)
+    }else{
+      cv_ics <- sapply(1:nfolds, eachfold)
+    }
+    return(mean(unlist(cv_ics)))
   }
 
+  icfin <- cv(nfolds)
 
 
-  if (criterion == "deviance") {
-    icfin = mean(dev_cv)
-  } else if (criterion == "R2") {
-    icfin = mean(r2cv)
-  }else{
-    icfin = mean(var_res)
-  }
+
+#
+#   for (fold in 1:nfolds){
+#     test <- aux$which==fold
+#     Wtrainning = rep(1, n)
+#     Wtrainning[test] = 0
+#
+#     if (method == "lm") {
+#       formula = model$call$formula
+#       Mtrainning = lm(formula, weights = Wtrainning)
+#     }
+#
+#     if (method == "glm") {
+#       formula = model$call$formula
+#       Mtrainning = glm(formula, family = family, weights = Wtrainning)
+#       #  pred = predict(glm(formula, family = family), type = "response")
+#     }
+#
+#     if (method == "gam") {
+#       formula = model$call$formula
+#       Mtrainning = gam(formula, family = family, weights = Wtrainning)
+#       #  pred = predict(gam(formula, family = family), type = "response")
+#     }
+#
+#     muhat = predict(Mtrainning, type = "response")
+#     muhat_test = muhat[test]
+#     y_test = y[test]
+#     if (family == "binomial") {y = as.numeric(as.character(y))}
+#
+#
+#     if (criterion == "deviance") {
+#
+#       if (family == "gaussian"){
+#         dev_cv = sum((y_test - muhat_test)^2)}
+#       if (family == "binomial") {
+#         ii = muhat_test < 1e-04
+#         muhat_test[ii] = 1e-04
+#         ii = muhat_test > 0.9999
+#         muhat_test[ii] = 0.9999
+#         entrop = rep(0, length(test))
+#         ii = (1 - y_test) * y_test > 0
+#         if (sum(ii) > 0) {
+#           entrop[ii] = 2 * (y_test[ii] * log(y_test[ii])) +
+#             ((1 - y_test[ii]) * log(1 - y_test[ii]))
+#         } else {
+#           entrop = 0
+#         }
+#         entadd = 2 * y_test * log(muhat_test) +
+#           (1 - y_test) * log(1 - muhat_test)
+#         dev_cv = sum(entrop - entadd)
+#       }
+#
+#       if (family == "poisson") {
+#         tempf = muhat_test
+#         ii = tempf < 1e-04
+#         tempf[ii] = 1e-04
+#         dev_cv = 2 * (-y_test * log(tempf) - (y_test -
+#                                                 muhat_test))
+#         ii = y_test > 0
+#         dev_cv[ii] = dev_cv[ii] + (2 * y_test[ii] *
+#                                      log(y_test[ii]))
+#         dev_cv[fold] = sum(dev_cv)
+#       }
+#
+#
+#
+#
+#     } else if (criterion == "R2") {
+#
+#       var_res = sum((y[test] - muhat[test])^2)/length(test) #var_res
+#
+#       r2cv[fold] = 1 - (var_res/(var(y[test]) * (length(test) -
+#                                                    1)/length(test))) #r2cv
+#
+#
+#     }else{
+#       var_res[fold] = sum((y[test] - muhat[test])^2)/length(test) #var_res
+#     }
+#
+#   }
+#
+#
+#
+#   if (criterion == "deviance") {
+#     icfin = mean(dev_cv)
+#   } else if (criterion == "R2") {
+#     icfin = mean(r2cv)
+#   }else{
+#     icfin = mean(var_res)
+#   }
+
+
+
+
 
   if(class(x) == "data.frame"){
     names1 = names(x[inside])

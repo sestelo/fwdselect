@@ -1,6 +1,7 @@
 Package: FWDselect
 Title: Selecting variables in regression models
 Version: 1.2.0.9000
+Author: Marta Sestelo, Nora M. Villanueva, Javier Roca-Pardinas
 Authors@R: c(
     person("Marta", "Sestelo",email= "sestelo@uvigo", role = c("aut", "cre")),
     person("Nora", "M. Villanueva",email= "nmvillanueva@uvigo", role = "aut"),
@@ -18,3 +19,4 @@ Imports:
   cvTools,
   mgcv,
   parallel
+

@@ -10,21 +10,21 @@
 #' @seealso \code{\link{selection}}.
 #' @examples
 #' library(FWDselect)
-#' data(pollution)
-#' x = pollution[ ,-19]
-#' y = pollution[ ,19]
-#' obj1 = selection(x, y, q = 1, method = "lm", criterion = "deviance")
+#' data(diabetes)
+#' x = diabetes[ ,2:11]
+#' y = diabetes[ ,1]
+#' obj1 = selection(x, y, q = 1, method = "lm", criterion = "variance", cluster = FALSE)
 #' obj1
 #' @export
 
+
+
 print.selection <- function(x = model, ...) {
-    # print.frfast2(model) es igual escribir model
+
+  if (inherits(x, "selection")) {
+
     model <- x
 
-
-    # cat('\nTotal Number of Nucleotides ')
-    # cat(format(sum(model$nat,model$ngc)))
-    # cat('\n')
     cat("\n")
     cat("****************************************************")
 
@@ -42,28 +42,47 @@ print.selection <- function(x = model, ...) {
     cat("\n")
     if (model$seconds == T) {
 
-        cont = 0
-        for (i in 1:model$nmodels) {
+      cont = 0
+      auxic <- c()
+      auxmodel <- c()
+      for (i in 1:model$nmodels) {
 
-            if (i == 1) {
-                cont = cont + 10
-            } else {
-                cont = cont + 5
-            }
-            cat("\nAternative (", i, ") subset of size q =",
-                length(model$Variable_numbers),
-                ": ")
-            cat(format(model[cont]))
-
-            cat("\n")
-            cat("\nInformation Criterion Value -",
-                model$ic, ": ")
-            cat(format(model[cont + 2]))
-            cat("\n")
-            cat("\n")
-
+        if (i == 1) {
+          cont = cont + 10
+        } else {
+          cont = cont + 5
         }
 
-    }
+        # change order (due to the cv)
+        auxic[i] <- model[cont + 2]
+        auxmodel[i] <- model[cont]
+      }
 
+      ii <- order(unlist(auxic))
+
+      for (i in 1:model$nmodels) {
+
+        cat("\nAternative (", i, ") subset of size q =",
+            length(model$Variable_numbers),
+            ": ")
+        cat(format(auxmodel[ii[i]]))
+
+        cat("\n")
+        cat("\nInformation Criterion Value -",
+            model$ic, ": ")
+        cat(format(auxic[ii[i]]))
+        cat("\n")
+        cat("\n")
+      }
+    }
+  }else{
+    stop("Argument x must be either selection object.")
+  }
 }
+
+
+
+
+
+
+

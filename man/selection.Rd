@@ -16,7 +16,8 @@ selection(x, y, q, prevar = NULL, criterion = "deviance", method = "lm",
 \item{q}{An integer specifying the size of the subset of variables to be
 selected.}
 
-\item{prevar}{FALTA}
+\item{prevar}{A vector containing the number of the best subset of
+\code{q-1} variables. \code{NULL}, by default.}
 
 \item{criterion}{The cross-validation-based information criterion to be used.
 Default is the deviance. Other functions provided are the coefficient of
@@ -55,13 +56,13 @@ Main function for selecting the best subset of \eqn{q} variables.
 }
 \examples{
 library(FWDselect)
-data(pollution)
-x = pollution[ ,-19]
-y = pollution[ ,19]
-obj1 = selection(x, y, q = 1, method = "lm", criterion = "deviance")
+data(diabetes)
+x = diabetes[ ,2:11]
+y = diabetes[ ,1]
+obj1 = selection(x, y, q = 1, method = "lm", criterion = "variance", cluster = FALSE)
 obj1
 
-obj11 = selection(x, y, q = 1, method = "lm", criterion = "deviance", seconds = TRUE, nmodels = 2)
+obj11 = selection(x, y, q = 1, method = "lm", criterion = "variance", seconds = TRUE, nmodels = 2, cluster = FALSE)
 obj11
 }
 \author{

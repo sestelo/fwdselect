@@ -27,10 +27,10 @@
 #'@seealso \code{\link{selection}} \code{\link{plot.qselection}}.
 #' @examples
 #' library(FWDselect)
-#' data(pollution)
-#' x = pollution[ ,-19]
-#' y = pollution[ ,19]
-#' obj2 = qselection(x, y, qvector = c(1:4), method = "lm", criterion = "R2")
+#' data(diabetes)
+#' x = diabetes[ ,2:11]
+#' y = diabetes[ ,1]
+#' obj2 = qselection(x, y, qvector = c(1:9), method = "lm", criterion = "variance", cluster = FALSE)
 #' obj2
 #'
 #'@export

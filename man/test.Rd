@@ -5,7 +5,7 @@
 \title{Bootstrap based test for covariate selection}
 \usage{
 test(x, y, method = "lm", family = "gaussian", nboot = 50,
-  speedup = TRUE, unique = FALSE, q = 1, bootseed = NULL,
+  speedup = FALSE, unique = FALSE, q = 1, bootseed = NULL,
   cluster = TRUE)
 }
 \arguments{
@@ -22,7 +22,7 @@ used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 
 \item{nboot}{Number of bootstrap repeats.}
 
-\item{speedup}{A logical value. If  \code{TRUE} (default), the testing
+\item{speedup}{A logical value. If  \code{TRUE}, the testing
 procedure is  accelerated by a minor change in the statistic.}
 
 \item{unique}{A logical value. If  \code{TRUE}, the test is performed only for
@@ -66,10 +66,10 @@ The detailed expression of the formulas are described in HTML help
 }
 \examples{
 library(FWDselect)
-data(pollution)
-x = pollution[ ,-19]
-y = pollution[ ,19]
-test(x, y, method = "lm", nboot = 5)
+data(diabetes)
+x = diabetes[ ,2:11]
+y = diabetes[ ,1]
+test(x, y, method = "lm", cluster = FALSE, nboot = 5)
 }
 \author{
 Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
@@ -77,7 +77,7 @@ Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 \references{
 Sestelo, M., Villanueva, N. M. and Roca-Pardinas, J. (2013).
  FWDselect: an R package for selecting variables in regression models.
- Discussion Papers in Statistics and Operation Research, 13/01.
+ Discussion Papers in Statistics and Operation Research, University of Vigo, 13/01.
 }
 \seealso{
 \code{\link{selection}}

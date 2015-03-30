@@ -1,4 +1,3 @@
-
 #'Bootstrap based test for covariate selection
 #'@description Function that applies a bootstrap based test for covariate
 #'  selection. It helps to determine the number of variables to be included in
@@ -11,7 +10,7 @@
 #'  used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 #'  (\code{"poisson"}).
 #'@param nboot Number of bootstrap repeats.
-#'@param speedup A logical value. If  \code{TRUE} (default), the testing
+#'@param speedup A logical value. If  \code{TRUE}, the testing
 #'  procedure is  accelerated by a minor change in the statistic.
 #'@param unique A logical value. If  \code{TRUE}, the test is performed only for
 #'  one null hypothesis, given by the argument  \code{q}.
@@ -37,17 +36,17 @@
 #'  level of 0.05}
 #'@references Sestelo, M., Villanueva, N. M. and Roca-Pardinas, J. (2013).
 #'  FWDselect: an R package for selecting variables in regression models.
-#'  Discussion Papers in Statistics and Operation Research, 13/01.
+#'  Discussion Papers in Statistics and Operation Research, University of Vigo, 13/01.
 #'@author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 #'@note The detailed expression of the formulas are described in HTML help
 #'  \url{http://cran.r-project.org/web/packages/FWDselect/FWDselect.pdf}
 #'@seealso \code{\link{selection}}
 #'@examples
 #' library(FWDselect)
-#' data(pollution)
-#' x = pollution[ ,-19]
-#' y = pollution[ ,19]
-#' test(x, y, method = "lm", nboot = 5)
+#' data(diabetes)
+#' x = diabetes[ ,2:11]
+#' y = diabetes[ ,1]
+#' test(x, y, method = "lm", cluster = FALSE, nboot = 5)
 #'
 #'@importFrom parallel detectCores
 #'@importFrom parallel clusterExport
@@ -56,7 +55,7 @@
 #'@export
 
 test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
-                 speedup = TRUE, unique = FALSE, q = 1, bootseed = NULL,
+                 speedup = FALSE, unique = FALSE, q = 1, bootseed = NULL,
                  cluster = TRUE){
 
   # Statistics T
@@ -85,9 +84,27 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
     }
     data_res = cbind(res, xres)
 
+
+    if(ncol(data_res) == 2){
+      if (optionT == "gam" & is.factor(xres) == FALSE) {
+        xnam = paste("s(xres)", sep = "")
+      } else {
+        xnam = paste("xres", sep = "")
+      }
+    }else{
+      xnam <- c()
+      for (num in 1:(ncol(data_res)-1)) {
+        if (optionT == "gam" & is.factor(data_res[, num+1]) == FALSE) {
+          xnam[num] = paste("s(xres[,", num, "])", sep = "")
+        } else {
+          xnam[num] = paste("xres[,", num, "]", sep = "")
+        }
+      }
+    }
+
+
+
     if(optionT == "gam"){
-      if(class(xres) == "numeric"){xnam <- paste("s(xres)", sep = "")}else{
-        xnam <- paste("s(xres[,", 1:ncol(xres),"])", sep = "")}
       fmla <- as.formula(paste("res ~ ", paste(xnam, collapse= "+")))
       pred1 <- gam(fmla)
     }else{
@@ -100,19 +117,25 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
 
 
 
+  if (cluster==TRUE){
+    num_cores <- detectCores() - 1
+    if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
+    cl<-makeCluster(num_cores, type = par_type)
+  }
 
-  nvar = ncol(x)
-  n = length(y)
-  xydata = cbind(y, x)
-  pvalue = c()
-  Decision = c()
-  Hypothesis = c()
-  T = c()
-  ii = 1
+
+  nvar <- ncol(x)
+  n <- length(y)
+  xydata <- cbind(y, x)
+  pvalue <- c()
+  Decision <- c()
+  Hypothesis <- c()
+  T <- c()
+  ii <- 1
   if (unique == FALSE) {
-    bucle = c(1:(nvar - 1))
+    bucle <- c(1:(nvar - 1))
   } else {
-    bucle = q
+    bucle <- q
   }
   for (qh0 in bucle) {
     print(paste("Processing IC bootstrap for H_0 (",
@@ -122,21 +145,12 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
     }
     T[ii] = Tvalue(xy = xydata, qT = qh0, prevars = pre)
     sel_numg<- sel_num # lo saco de la funcion Tvalue bajo H_0
-    muhatg = pred  #lo saco de la funcion Tvalue bajo H_0
-    muhatg[muhatg < 0] = 0
+    muhatg <- pred  #lo saco de la funcion Tvalue bajo H_0
+    muhatg[muhatg < 0] <- 0
 
 
     # Bootstrap
     ################################
-    #registerDoParallel(cl)
-    # clusterExport(cl, "Tvalue")
-    # xydata <- cbind(y, x)
-    # clusterExport(cl, "xydata")
-    #clusterExport(cl, "qh0")
-    ###########################
-
-
-    # Bootstrap
 
     set.seed(bootseed)
 
@@ -150,54 +164,31 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
         return(muhatg + (err1 * yaux + err2 * (1 - yaux)))
       }
       yb <- replicate(nboot,funreplicate())
-
-      funapply<-function(y){Tvalue(xy = cbind(y,xydata[,-1]), qT = qh0, prevars = NULL)}
-
-
-      ## for parallel
-      if (cluster==TRUE){
-        num_cores <- detectCores() - 1
-        if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-        cl<-makeCluster(num_cores, type = par_type)
-        Tboot <- parCapply(cl=cl,yb,funapply)
-        stopCluster(cl)
-      }else{
-        Tboot <- apply(yb,2,funapply)
-      }
     }
 
-
-
-    #FALTA paralelizacion a partir de aquí
-
     if (family == "binomial") {
-      for (iboot in 1:nboot) {
-        # yaux=rbinom(n, 1, prob=(5+sqrt(5))/10)
-        for (irow in 1:n) {
-          yb[irow] = rbinom(1, 1, prob = muhatg[irow])
-        }
-        #   yb
-        #  print(T[ii])
-        #  print(iboot)
-        aux = cbind(yb, xydata[, -1])
-        Tboot[iboot] = Tvalue(xy = aux,
-                              qT = qh0)
-        print(Tboot[iboot])
+      funreplicatebinom <- function(){
+        yaux <- rbinom(n, 1, prob = muhatg)
+        return(yaux)
       }
+      yb <- replicate(nboot,funreplicatebinom())
     }
 
     if (family == "poisson") {
-      for (iboot in 1:nboot) {
-        # yaux=rbinom(n, 1, prob=(5+sqrt(5))/10)
-        for (irow in 1:n) {
-          yb[irow] = rpois(1, lambda = muhatg[irow])
-        }
-        aux = cbind(yb, xydata[, -1])
-        Tboot[iboot] = Tvalue(xy = aux,
-                              qT = qh0)
+      funreplicatepois <- function(){
+        yaux <- rpois(n, lambda = muhatg)
+        return(yaux)
       }
+      yb <- replicate(nboot,funreplicatepois())
     }
 
+    funapply<-function(y){Tvalue(xy = cbind(y,xydata[,-1]), qT = qh0, prevars = NULL)}
+
+    if (cluster == TRUE){
+      Tboot <- parCapply(cl=cl,yb,funapply)
+    }else{
+      Tboot <- apply(yb,2,funapply)
+    }
 
     pvalue[ii] = sum(Tboot >= T[ii])/nboot
 
@@ -216,8 +207,6 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
   cat("\n*************************************\n")
   return(as.data.frame(m))
 
-
-
-
+  if (cluster == TRUE){stopCluster(cl = cl)}
 
 }

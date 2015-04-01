@@ -143,6 +143,8 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
     if(isTRUE(unique)){pre == NULL}else{
       if(qh0 == 1){pre = NULL}else{pre = sel_numg}
     }
+    pred <- c()
+    sel_num <- c()
     T[ii] = Tvalue(xy = xydata, qT = qh0, prevars = pre)
     sel_numg<- sel_num # lo saco de la funcion Tvalue bajo H_0
     muhatg <- pred  #lo saco de la funcion Tvalue bajo H_0

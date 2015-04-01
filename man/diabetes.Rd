@@ -12,8 +12,8 @@ the ten explanatory variables (age, sex, body mass index, average blood
 pressure and six blood serum registers) obtained from each of the 442
 diabetes patients.}
 \source{
-The orginal data are available in the \pkg{lars} package,
-see http://cran.r-project.org/web/ packages/lars/.
+The orginal data are available in the lars package,
+see http://cran.r-project.org/web/packages/lars/.
 }
 \usage{
 diabetes
@@ -30,6 +30,6 @@ head(diabetes)
 }
 \references{
 Efron, B., Hastie, T., Johnstone, I. and Tibshirani, R. (2004).
-Least angle regression (with discussion). Annals of Statistics, 32:407–499.
+Least angle regression (with discussion). Annals of Statistics, 32:407--499.
 }
 

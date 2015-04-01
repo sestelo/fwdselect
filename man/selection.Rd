@@ -62,7 +62,8 @@ y = diabetes[ ,1]
 obj1 = selection(x, y, q = 1, method = "lm", criterion = "variance", cluster = FALSE)
 obj1
 
-obj11 = selection(x, y, q = 1, method = "lm", criterion = "variance", seconds = TRUE, nmodels = 2, cluster = FALSE)
+obj11 = selection(x, y, q = 1, method = "lm", criterion = "variance",
+seconds = TRUE, nmodels = 2, cluster = FALSE)
 obj11
 }
 \author{

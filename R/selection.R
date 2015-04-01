@@ -40,8 +40,16 @@
 #' obj1 = selection(x, y, q = 1, method = "lm", criterion = "variance", cluster = FALSE)
 #' obj1
 #'
-#' obj11 = selection(x, y, q = 1, method = "lm", criterion = "variance", seconds = TRUE, nmodels = 2, cluster = FALSE)
+#' # second models
+#' obj11 = selection(x, y, q = 1, method = "lm", criterion = "variance",
+#' seconds = TRUE, nmodels = 2, cluster = FALSE)
 #' obj11
+#'
+#' # prevar argument
+#' obj2 = selection(x, y, q = 2, method = "lm", criterion = "variance", cluster = FALSE)
+#' obj2
+#' obj3 = selection(x, y, q = 3, prevar = obj2$Variable_numbers, method = "lm", criterion = "variance", cluster = FALSE)
+#'
 #'
 #'@importFrom mgcv gam
 #'@importFrom mgcv predict.gam
@@ -116,7 +124,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
 
 
-
+  aux <- c()
   fwdstep <- function(j){
     aux <<- x[ ,j]
     if (method == "gam" & is.factor(aux) == FALSE) {
@@ -336,124 +344,124 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
 
 
-# Second models
+  # Second models
 
   if (seconds == TRUE) {
-     bestic1 = bestic
-     besticn = 0
-     cont = -1
-     fin = 1
-     for (h in 1:nmodels) {
-       cont = -1
-       fin = 1
-       while (fin != 0) {
-         fin = 0
-         for (zz in 1:q) {
+    bestic1 = bestic
+    besticn = 0
+    cont = -1
+    fin = 1
+    for (h in 1:nmodels) {
+      cont = -1
+      fin = 1
+      while (fin != 0) {
+        fin = 0
+        for (zz in 1:q) {
 
-           #para coger en un vector los nombres
-           for (num in 1:length(inside)) {
-             if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
-               xnam[num] = paste("s(x[,", inside[num], "])", sep = "")
-             } else {
-               xnam[num] = paste("x[,", inside[num], "]", sep = "")
-             }
-           }
-
-
-
-           ic2 <- NULL
-           if (cluster == TRUE){
-             ic2 <- parLapply(cl = cl, out, fwdstep2, bucle = zz)
-           }else{
-             ic2 <- sapply(out, fwdstep2, bucle = zz)
-           }
-           ic2 <- unlist(ic2)
+          #para coger en un vector los nombres
+          for (num in 1:length(inside)) {
+            if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
+              xnam[num] = paste("s(x[,", inside[num], "])", sep = "")
+            } else {
+              xnam[num] = paste("x[,", inside[num], "]", sep = "")
+            }
+          }
 
 
-             if ((zz == 1) & (cont == -1)) {
-               bestic = 1e+11}
-              # oldinside = inside
-              # inside[zz] = out[1]
-              # out[1] = oldinside[1]
-            # }
 
-            for (j in 1:length(out)) {
-             #  if ((zz == 1) & (cont == -1) &
+          ic2 <- NULL
+          if (cluster == TRUE){
+            ic2 <- parLapply(cl = cl, out, fwdstep2, bucle = zz)
+          }else{
+            ic2 <- sapply(out, fwdstep2, bucle = zz)
+          }
+          ic2 <- unlist(ic2)
+
+
+          if ((zz == 1) & (cont == -1)) {
+            bestic = 1e+11}
+          # oldinside = inside
+          # inside[zz] = out[1]
+          # out[1] = oldinside[1]
+          # }
+
+          for (j in 1:length(out)) {
+            #  if ((zz == 1) & (cont == -1) &
             #       (j == 1)) {
-             #   j = 2
-             #  }
-               if (h == 1) {
-                 if ((ic2[j] < bestic) &
-                       (round(ic2[j],3) > round(bestic1,3))) {
-                   bestic = ic2[j]
-                   oldinside = inside
-                   inside[zz] = out[j]
-                   out[j] = oldinside[zz]
-                   fin = 1
-                 }
-               } else {
-                 if ((ic2[j] < bestic) &
-                       (ic2[j] > besticn)) {
-                   bestic = ic2[j]
-                   oldinside = inside
-                   inside[zz] = out[j]
-                   out[j] = oldinside[zz]
-                   fin = 1
-                 }
-               }
-             }
-           }
-         cont = cont + 1
-       }
-
-#     xin <- NULL
-#     for (num in 1:length(inside)) {
-#       if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
-#         xin[num] = paste("s(x[,", inside[num], "])", sep = "")
-#       } else {
-#         xin[num] = paste("x[,", inside[num], "]", sep = "")
-#       }
-#     }
-#       xnam = xin
-
-        for (num in 1:length(inside)) {
-          if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
-            xnam[num] = paste("s(x[,", inside[num], "])", sep = "")
-          } else {
-            xnam[num] = paste("x[,", inside[num], "]", sep = "")
+            #   j = 2
+            #  }
+            if (h == 1) {
+              if ((ic2[j] < bestic) &
+                    (round(ic2[j],3) > round(bestic1,3))) {
+                bestic = ic2[j]
+                oldinside = inside
+                inside[zz] = out[j]
+                out[j] = oldinside[zz]
+                fin = 1
+              }
+            } else {
+              if ((ic2[j] < bestic) &
+                    (ic2[j] > besticn)) {
+                bestic = ic2[j]
+                oldinside = inside
+                inside[zz] = out[j]
+                out[j] = oldinside[zz]
+                fin = 1
+              }
+            }
           }
         }
+        cont = cont + 1
+      }
 
-       model <- update(model, as.formula(paste(". ~ ",
-                                               paste(xnam, collapse = "+"))))
+      #     xin <- NULL
+      #     for (num in 1:length(inside)) {
+      #       if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
+      #         xin[num] = paste("s(x[,", inside[num], "])", sep = "")
+      #       } else {
+      #         xin[num] = paste("x[,", inside[num], "]", sep = "")
+      #       }
+      #     }
+      #       xnam = xin
 
-        besticn = deviance(model)
+      for (num in 1:length(inside)) {
+        if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
+          xnam[num] = paste("s(x[,", inside[num], "])", sep = "")
+        } else {
+          xnam[num] = paste("x[,", inside[num], "]", sep = "")
+        }
+      }
+
+      model <- update(model, as.formula(paste(". ~ ",
+                                              paste(xnam, collapse = "+"))))
+
+      besticn = deviance(model)
 
 
-        icfin <- cv(nfolds)
+      icfin <- cv(nfolds)
 
-       if(class(x) == "data.frame"){
-         names2 = names(x[inside])
-       }else{
-         allnames <- colnames(x)
-         names2 = allnames[inside]}
-       if(is.null(names2)){names2=inside}  #por si no tiene nombres
-
-
-    res2 <- list(Alternative_model = model, Variable_names = names2,
-                Variable_numbers = inside, Information_Criterion = icfin,
-                ic = criterion)
+      if(class(x) == "data.frame"){
+        names2 = names(x[inside])
+      }else{
+        allnames <- colnames(x)
+        names2 = allnames[inside]}
+      if(is.null(names2)){names2=inside}  #por si no tiene nombres
 
 
-    res = c(res, res2)
+      res2 <- list(Alternative_model = model, Variable_names = names2,
+                   Variable_numbers = inside, Information_Criterion = icfin,
+                   ic = criterion)
 
+
+      res = c(res, res2)
+
+    }
   }
-}
 
 
-if(cluster == TRUE) {stopCluster(cl = cl)}
-class(res) <- "selection"
-return(res)
+  if(cluster == TRUE) {stopCluster(cl = cl)}
+  class(res) <- "selection"
+  return(res)
 }
 
 

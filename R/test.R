@@ -10,12 +10,20 @@
 #'  used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 #'  (\code{"poisson"}).
 #'@param nboot Number of bootstrap repeats.
-#'@param speedup A logical value. If  \code{TRUE}, the testing
-#'  procedure is  accelerated by a minor change in the statistic.
-#'@param unique A logical value. If  \code{TRUE}, the test is performed only for
-#'  one null hypothesis, given by the argument  \code{q}.
-#'@param q If  \code{unique} is \code{TRUE}, \code{q} is the size of the subset
-#'  of variables to be tested.
+#'@param speedup A logical value. If  \code{TRUE} (default), the testing procedure
+#' is  computationally efficient since it considers one more variable to fit
+#' the alternative model than the number of variables used to fit the null.
+#' If \code{FALSE}, the fit of the alternative model is based on considering
+#' the best subset of variables of size greater than $q$, the one that minimizes an
+#' information criterion. The size of this subset must be given by the user
+#' filling the argument \code{qmin}.
+#' @param qmin By default \code{NULL}. If \code{speedup} is \code{FALSE},
+#' \code{qmin} is the integer number which corresponds with the size of
+#' the best subset of variables.
+#'@param unique A logical value. By default \code{FALSE}. If  \code{TRUE},
+#' the test is performed only for one null hypothesis, given by the argument  \code{q}.
+#'@param q By default \code{NULL}. If  \code{unique} is \code{TRUE}, \code{q}
+#' is the size of the subset of variables to be tested.
 #'@param bootseed Seed to be used in the bootstrap procedure.
 #'@param cluster A logical value. If  \code{TRUE} (default), the testing
 #'  procedure is  parallelized.
@@ -55,8 +63,8 @@
 #'@export
 
 test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
-                 speedup = FALSE, unique = FALSE, q = 1, bootseed = NULL,
-                 cluster = TRUE){
+                 speedup = TRUE, qmin = NULL, unique = FALSE, q = NULL,
+                 bootseed = NULL, cluster = TRUE){
 
   # Statistics T
   Tvalue <- function(xy, qT = qh0, optionT = method,
@@ -69,8 +77,8 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
     aux = selection(x, y, q = qT, prevar = prevars, method = optionT,
                     family = family, seconds = FALSE, criterion = "deviance", nfolds = 2, cluster = FALSE)
     # if (!exists("pred")) {pred <<- aux$Prediction}
-    pred <<- aux$Prediction
-    sel_num <<- aux$Variable_number
+    pred <- aux$Prediction
+    sel_num <- aux$Variable_number
     #res = y - pred
     res = aux$Best_model$residuals
     if (speed == TRUE & qT!=(nvar-1)) {
@@ -79,10 +87,18 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
                           family = "gaussian", seconds = FALSE,
                           criterion = "deviance", cluster = FALSE)$Variable_number
       xres = xno[, c(var_imp)]
-    } else {
-      xres = x[, -sel_num]
-    }
+      }else if (speed == TRUE & qT == (nvar-1)){
+       xres = x[, -sel_num]
+      } else {
+            xno = x[, -sel_num]
+           realqmin <- qmin-qT
+          var_imp = selection(xno, res, q = realqmin, method = optionT,
+                             family = "gaussian", seconds = FALSE,
+                            criterion = "deviance", cluster = FALSE)$Variable_number
+        xres = xno[, c(var_imp)]
+        }
     data_res = cbind(res, xres)
+
 
 
     if(ncol(data_res) == 2){
@@ -106,21 +122,43 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
 
     if(optionT == "gam"){
       fmla <- as.formula(paste("res ~ ", paste(xnam, collapse= "+")))
-      pred1 <- gam(fmla)
+      pred1 <- gam(fmla, data = as.data.frame(data_res))
     }else{
       pred1 <- glm(res ~ ., family = "gaussian", data = as.data.frame(data_res))
     }
 
     pred1 <- predict(pred1, type = "response")
     T = sum(abs(pred1))
+    return(list(T = T, pred = pred, sel_num = sel_num))
   }
+
+
+
+
+  if (missing(x)) {
+    stop("Argument \"x\" is missing, with no default")
+  }
+  if (missing(y)) {
+    stop("Argument \"y\" is missing, with no default")
+  }
+  if (speedup == "FALSE" & is.null(qmin)) {
+    stop("Argument \"qmin\" is missing, with no default")
+  }
+  if (speedup == "TRUE" & !is.null(qmin)) {
+    warning("Argument \"qmin\" has not been considered")
+  }
+  if (unique == "TRUE" & is.null(q)) {
+    stop("Argument \"q\" is missing, with no default")
+  }
+
+
 
 
 
   if (cluster==TRUE){
     num_cores <- detectCores() - 1
     if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-    cl<-makeCluster(num_cores, type = par_type)
+    cl<-makeCluster(num_cores, type = par_type, outfile="marta")
   }
 
 
@@ -137,17 +175,19 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
   } else {
     bucle <- q
   }
+  pre <- c()
   for (qh0 in bucle) {
     print(paste("Processing IC bootstrap for H_0 (",
                 qh0, ")..."), sep = "")
     if(isTRUE(unique)){pre == NULL}else{
       if(qh0 == 1){pre = NULL}else{pre = sel_numg}
     }
-    pred <- c()
-    sel_num <- c()
-    T[ii] = Tvalue(xy = xydata, qT = qh0, prevars = pre)
-    sel_numg<- sel_num # lo saco de la funcion Tvalue bajo H_0
-    muhatg <- pred  #lo saco de la funcion Tvalue bajo H_0
+    #pred <- c()
+    #sel_num <- c()
+    res <- Tvalue(xy = xydata, qT = qh0, prevars = pre)
+    T[ii] <- res$T
+    sel_numg<- res$sel_num # lo saco de la funcion Tvalue bajo H_0
+    muhatg <- res$pred  #lo saco de la funcion Tvalue bajo H_0
     muhatg[muhatg < 0] <- 0
 
 
@@ -184,7 +224,7 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
       yb <- replicate(nboot,funreplicatepois())
     }
 
-    funapply<-function(y){Tvalue(xy = cbind(y,xydata[,-1]), qT = qh0, prevars = NULL)}
+    funapply<-function(y){Tvalue(xy = cbind(y,xydata[,-1]), qT = qh0, prevars = NULL)$T}
 
     if (cluster == TRUE){
       Tboot <- parCapply(cl=cl,yb,funapply)

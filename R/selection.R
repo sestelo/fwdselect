@@ -48,7 +48,8 @@
 #' # prevar argument
 #' obj2 = selection(x, y, q = 2, method = "lm", criterion = "variance", cluster = FALSE)
 #' obj2
-#' obj3 = selection(x, y, q = 3, prevar = obj2$Variable_numbers, method = "lm", criterion = "variance", cluster = FALSE)
+#' obj3 = selection(x, y, q = 3, prevar = obj2$Variable_numbers,
+#' method = "lm", criterion = "variance", cluster = FALSE)
 #'
 #'
 #'@importFrom mgcv gam
@@ -86,14 +87,17 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     stop('The size of subset \'q\' is the same that the number of covariates')
   }
 
+
+
+
   # for paralellize
   if (cluster == TRUE){
     num_cores <- detectCores() - 1
     if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-    cl <- makeCluster(num_cores, type = par_type)
+    cla <- makeCluster(num_cores, type = par_type)
   }
 
-
+  #dat = data.frame(y,x)
 
   if (method == "lm") {
     model <- lm(y ~ NULL)
@@ -118,32 +122,74 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
         xnam = paste("x[,", prevar[l], "]", sep = "")
       }
       xyes[l] = xnam
-      model <- update(model, as.formula(paste(". ~ ", paste(xyes, collapse = "+"))))
     }
+
+    form1 <- update(as.formula(model, env = environment(fun = NULL)), paste(". ~ ", paste(xyes, collapse = "+")))
+    if (method == "gam"){
+      model <- gam(form1, family = family)
+    }else{
+      model <- glm(form1, family = family)
+    }
+
+    # model <- update(model, as.formula(paste(". ~ ", paste(xyes, collapse = "+"))))
+
   }
 
 
+  #print (model)
+  # marta <- x
+  #mye <- new.env()
+  # mye$x <- x
+  #aux <- c()
 
-  aux <- c()
+  # if (cluster ==TRUE) clusterExport(cl = cla, varlist = "x", envir = environment())#busca en el environment de la funcion
+
+
+
+
   fwdstep <- function(j){
-    aux <<- x[ ,j]
-    if (method == "gam" & is.factor(aux) == FALSE) {
-      models <- update(model, . ~ . + s(aux))
-    } else {
-      models <- update(model, . ~ . + aux)
+
+    form0 <- as.formula(model, env = environment(fun = NULL))
+
+    if (method == "gam" & is.factor(x[,j]) == FALSE) {
+      form1 <- update(form0, . ~ . + s(x[,j]))
+    }else{
+      form1 <- update(form0, . ~ . + x[,j])
     }
+
+
+    if (method == "gam"){
+      models <- gam(form1, family = family)
+    }else{
+      models <- glm(form1, family = family)
+    }
+
     return(deviance(models))
+
   }
 
 
+  # environment(fwdstep) <- FWDselect
+  # print (model)
 
   fwdstep2 <- function(j, bucle){
+
     if (method == "gam" & is.factor(x[ ,j]) == FALSE) {
       xnam[bucle] <- paste("s(x[ ,", j, "])",sep="")
     } else {
       xnam[bucle] <- paste("x[ ,", j, "]",sep="")
     }
-    model1 <- update(model, as.formula(paste(". ~ ", paste(xnam, collapse = "+"))))
+
+    form0 <- as.formula(model, env = environment())
+
+    form1 <- update(form0, paste(". ~ ", paste(xnam, collapse = "+")))
+
+    if (method == "gam"){
+      model1 <- gam(form1, family = family)
+    }else{
+      model1 <- glm(form1, family = family)
+    }
+
     return(deviance(model1))
   }
 
@@ -164,7 +210,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   for (k in bucle) {
     ic <- NULL
     if (cluster == TRUE){
-      ic <- parLapply(cl = cl, out, fwdstep)
+      ic <- parLapply(cl = cla, out, fwdstep)
     }else{
       ic <- sapply(out, fwdstep)
     }
@@ -179,13 +225,18 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     }
 
     xyes[k] = xnam
-
-    model <- update(model, as.formula(paste(". ~ ", paste(xyes, collapse = "+"))))
+    form1 <- update(as.formula(model, env = environment(fun = NULL)), paste(". ~ ", paste(xyes, collapse = "+")))
+    if (method == "gam"){
+      model <- gam(form1, family = family)
+    }else{
+      model <- glm(form1, family = family)
+    }
     bestic = deviance(model)
   }
 
 
   ## Here it have introduced the first q variables
+
 
 
   stop <- integer(q)
@@ -213,7 +264,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
       ic <- NULL
       if (cluster == TRUE){
-        ic <- parLapply(cl = cl, out, fwdstep2, bucle = f)
+        ic <- parLapply(cl = cla, out, fwdstep2, bucle = f)
       }else{
         ic <- sapply(out, fwdstep2, bucle = f)
       }
@@ -232,7 +283,14 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
           xin = paste("x[,", inside[f], "]", sep = "")
         }
         xnam[f] = xin
-        model <- update(model, as.formula(paste(". ~ ", paste(xnam, collapse = "+"))))
+        #model <- update(model, as.formula(paste(". ~ ", paste(xnam, collapse = "+"))))
+        form1 <- update(as.formula(model, env = environment()), paste(". ~ ", paste(xnam, collapse = "+")))
+        if (method == "gam"){
+          model <- gam(form1, family = family)
+        }else{
+          model <- glm(form1, family = family)
+        }
+
         bestic = deviance(model)
         stop[f] = 1
       }
@@ -251,7 +309,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
       test <- aux$which==fold
       Wtrainning = rep(1, n)
       Wtrainning[test] = 0
-      formula <- model$call$formula
+      formula <- eval(model$call$formula)
       dat <- data.frame(Wtrainning = Wtrainning)
 
       if (method == "lm") {
@@ -319,7 +377,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
     aux <- cvFolds(n, K = nfolds, type = "consecutive")
     if (cluster == TRUE){
-      cv_ics <- parLapply(cl = cl, 1:nfolds, eachfold)
+      cv_ics <- parLapply(cl = cla, 1:nfolds, eachfold)
     }else{
       cv_ics <- sapply(1:nfolds, eachfold)
     }
@@ -371,7 +429,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
           ic2 <- NULL
           if (cluster == TRUE){
-            ic2 <- parLapply(cl = cl, out, fwdstep2, bucle = zz)
+            ic2 <- parLapply(cl = cla, out, fwdstep2, bucle = zz)
           }else{
             ic2 <- sapply(out, fwdstep2, bucle = zz)
           }
@@ -432,8 +490,14 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
         }
       }
 
-      model <- update(model, as.formula(paste(". ~ ",
-                                              paste(xnam, collapse = "+"))))
+     # model <- update(model, as.formula(paste(". ~ ",paste(xnam, collapse = "+"))))
+
+     form1 <- update(as.formula(model, env = environment()), paste(". ~ ", paste(xnam, collapse = "+")))
+     if (method == "gam"){
+       model <- gam(form1, family = family)
+     }else{
+       model <- glm(form1, family = family)
+     }
 
       besticn = deviance(model)
 
@@ -459,13 +523,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   }
 
 
-  if(cluster == TRUE) {stopCluster(cl = cl)}
+  if(cluster == TRUE) {stopCluster(cl = cla)}
   class(res) <- "selection"
   return(res)
 }
-
-
-
-
-
-

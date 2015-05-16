@@ -5,7 +5,7 @@
 \title{Selecting variables for several subset sizes}
 \usage{
 qselection(x, y, qvector, criterion = "deviance", method = "lm",
-  family = "gaussian", nfolds = 5, cluster = TRUE)
+  family = "gaussian", nfolds = 5, cluster = TRUE, ncores = NULL)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -31,6 +31,10 @@ used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 
 \item{cluster}{A logical value. If  \code{TRUE} (default), the
 procedure is  parallelized.}
+
+\item{ncores}{An integer value specifying the number of cores to be used
+in the parallelized procedure. If \code{NULL} (default), the number of cores to be used
+is equal to the number of cores of the machine - 1.}
 }
 \value{
 \item{q}{A vector of subset sizes.}

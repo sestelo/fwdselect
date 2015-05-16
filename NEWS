@@ -1,0 +1,16 @@
+This file documents software changes since the previous edition.
+
+
+
+FWDselect 2.0 (2014-05-15)
+———————————————————————————
+
+  * the testing procedure have been optimized.
+
+  * test function has been reprogrammed to speed up computation by using the parallel package.
+
+  * selection function has been reprogrammed to speed up computation by using the parallel package.
+
+  * a new argument for the number of folds in the cross-validation procedure has been included in the selection function.
+
+  * the diabetes dataset has been added.

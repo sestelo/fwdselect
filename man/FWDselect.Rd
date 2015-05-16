@@ -4,11 +4,11 @@
 \name{FWDselect}
 \alias{FWDselect}
 \alias{FWDselect-package}
-\title{\code{FWDselect}: Selecting variables in regression models.}
+\title{\code{FWDselect}: Selecting Variables in Regression Models.}
 \description{
-\code{FWDselect} package introduces a simple method to select the best model
-using different types of data (binary, gaussian or poisson) and applying it
-in different contexts (parametric or nonparametric). The proposed method is a
+This package introduces a simple method to select the best model
+using different types of data (binary, Gaussian or Poisson) and applying it
+in different contexts (parametric or non-parametric). The proposed method is a
 new forward stepwise-based selection procedure that  selects a model
 containing a subset of variables according to an optimal criterion (obtained
 by cross-validation) and also takes into account the computational cost.
@@ -18,7 +18,7 @@ are present in the model.
 }
 \details{
 \tabular{ll}{ Package: \tab FWDselect\cr Type: \tab Package\cr
-Version: \tab 1.2\cr Date: \tab 2015-01-30\cr License: \tab GPL\cr}
+Version: \tab 2.0\cr Date: \tab 2015-05-15\cr License: \tab MIT + file LICENSE\cr}
 
 \code{FWDselect} is just a shortcut for ``Forward selection'' and is a very
 good summary of one of the package's major functionalities, i.e., that of

@@ -6,7 +6,7 @@
 \usage{
 test(x, y, method = "lm", family = "gaussian", nboot = 50,
   speedup = TRUE, qmin = NULL, unique = FALSE, q = NULL,
-  bootseed = NULL, cluster = TRUE)
+  bootseed = NULL, cluster = TRUE, ncores = NULL)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -44,6 +44,10 @@ is the size of the subset of variables to be tested.}
 
 \item{cluster}{A logical value. If  \code{TRUE} (default), the testing
 procedure is  parallelized.}
+
+\item{ncores}{An integer value specifying the number of cores to be used
+in the parallelized procedure. If \code{NULL} (default), the number of cores to be used
+is equal to the number of cores of the machine - 1.}
 }
 \value{
 \item{Hypothesis}{Number of the null hypothesis tested}

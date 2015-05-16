@@ -6,7 +6,7 @@
 \usage{
 selection(x, y, q, prevar = NULL, criterion = "deviance", method = "lm",
   family = "gaussian", seconds = FALSE, nmodels = 1, nfolds = 5,
-  cluster = TRUE)
+  cluster = TRUE, ncores = NULL)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -41,6 +41,10 @@ a few of the best models (equivalent).}
 
 \item{cluster}{A logical value. If  \code{TRUE} (default), the
 procedure is  parallelized.}
+
+\item{ncores}{An integer value specifying the number of cores to be used
+in the parallelized procedure. If \code{NULL} (default), the number of cores to be used
+is equal to the number of cores of the machine - 1.}
 }
 \value{
 \item{Best model}{The best model. If \code{seconds=TRUE}, it returns

@@ -24,6 +24,9 @@
 #'@param nfolds Number of folds for the cross-validation procedure.
 #'@param cluster A logical value. If  \code{TRUE} (default), the
 #'  procedure is  parallelized.
+#'@param ncores An integer value specifying the number of cores to be used
+#' in the parallelized procedure. If \code{NULL} (default), the number of cores to be used
+#' is equal to the number of cores of the machine - 1.
 #'@return
 #'\item{Best model}{The best model. If \code{seconds=TRUE}, it returns
 #'  also the best alternative models.}
@@ -64,7 +67,7 @@
 
 selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
                       method = "lm", family = "gaussian", seconds = FALSE,
-                      nmodels = 1, nfolds = 5, cluster = TRUE) {
+                      nmodels = 1, nfolds = 5, cluster = TRUE, ncores = NULL) {
 
 
 
@@ -88,13 +91,20 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   }
 
 
-
+  if (cluster == TRUE & detectCores() == 2 & is.null(ncores)) {
+    stop("The number of cores used in the parallelized procedure is just one. It is recommended to use cluster = FALSE ")
+  }
 
   # for paralellize
   if (cluster == TRUE){
-    num_cores <- detectCores() - 1
+    if (is.null(ncores)){
+      ncores <- detectCores() - 1
+    }else{
+      ncores <- ncores
+    }
     if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-    cla <- makeCluster(num_cores, type = par_type)
+    cl <- makeCluster(ncores, type = par_type)
+    on.exit(stopCluster(cl))
   }
 
   #dat = data.frame(y,x)
@@ -136,15 +146,6 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   }
 
 
-  #print (model)
-  # marta <- x
-  #mye <- new.env()
-  # mye$x <- x
-  #aux <- c()
-
-  # if (cluster ==TRUE) clusterExport(cl = cla, varlist = "x", envir = environment())#busca en el environment de la funcion
-
-
 
 
   fwdstep <- function(j){
@@ -169,8 +170,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   }
 
 
-  # environment(fwdstep) <- FWDselect
-  # print (model)
+
 
   fwdstep2 <- function(j, bucle){
 
@@ -210,7 +210,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   for (k in bucle) {
     ic <- NULL
     if (cluster == TRUE){
-      ic <- parLapply(cl = cla, out, fwdstep)
+      ic <- parLapply(cl = cl, out, fwdstep)
     }else{
       ic <- sapply(out, fwdstep)
     }
@@ -258,13 +258,11 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
         }
       }
 
-      # xnam <- names(model.frame(model))[2:length(inside)+1]
-      #f1<-formula(model)
-      #attr(terms(f1),"term.labels")
+
 
       ic <- NULL
       if (cluster == TRUE){
-        ic <- parLapply(cl = cla, out, fwdstep2, bucle = f)
+        ic <- parLapply(cl = cl, out, fwdstep2, bucle = f)
       }else{
         ic <- sapply(out, fwdstep2, bucle = f)
       }
@@ -377,7 +375,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
     aux <- cvFolds(n, K = nfolds, type = "consecutive")
     if (cluster == TRUE){
-      cv_ics <- parLapply(cl = cla, 1:nfolds, eachfold)
+      cv_ics <- parLapply(cl = cl, 1:nfolds, eachfold)
     }else{
       cv_ics <- sapply(1:nfolds, eachfold)
     }
@@ -429,7 +427,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
 
           ic2 <- NULL
           if (cluster == TRUE){
-            ic2 <- parLapply(cl = cla, out, fwdstep2, bucle = zz)
+            ic2 <- parLapply(cl = cl, out, fwdstep2, bucle = zz)
           }else{
             ic2 <- sapply(out, fwdstep2, bucle = zz)
           }
@@ -472,15 +470,6 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
         cont = cont + 1
       }
 
-      #     xin <- NULL
-      #     for (num in 1:length(inside)) {
-      #       if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
-      #         xin[num] = paste("s(x[,", inside[num], "])", sep = "")
-      #       } else {
-      #         xin[num] = paste("x[,", inside[num], "]", sep = "")
-      #       }
-      #     }
-      #       xnam = xin
 
       for (num in 1:length(inside)) {
         if (method == "gam" & is.factor(x[, inside[num]]) == FALSE) {
@@ -523,7 +512,6 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   }
 
 
-  if(cluster == TRUE) {stopCluster(cl = cla)}
   class(res) <- "selection"
   return(res)
 }

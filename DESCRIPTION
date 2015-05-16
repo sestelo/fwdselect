@@ -1,18 +1,22 @@
 Package: FWDselect
-Title: Selecting variables in regression models
-Version: 1.2.0.9000
-Author: Marta Sestelo, Nora M. Villanueva, Javier Roca-Pardinas
+Title: Selecting Variables in Regression Models
+Version: 2.0
+Date: 2015-05-15
+Author: Marta Sestelo [aut, cre],
+  Nora M. Villanueva [aut],
+  Javier Roca-Pardinas [aut]
+Maintainer: Marta Sestelo <sestelo@uvigo.es>
 Authors@R: c(
-    person("Marta", "Sestelo",email= "sestelo@uvigo", role = c("aut", "cre")),
-    person("Nora", "M. Villanueva",email= "nmvillanueva@uvigo", role = "aut"),
-    person("Javier", "Roca-Pardinas",email= "roca@uvigo", role = "ctb"))
-Description: FWDselect package introduces a simple method
-    to select the best model or best subset of variables using
-    different types of data (binary, gaussian or poisson) and
-    applying it in different contexts (parametric or nonparametric).
-URL: http://github.com/sestelo/fwdselect
+  person("Marta", "Sestelo",email= "sestelo@uvigo.es", role = c("aut", "cre")),
+  person("Nora", "M. Villanueva",email= "nmvillanueva@uvigo.es", role = "aut"),
+  person("Javier", "Roca-Pardinas",email= "roca@uvigo.es", role = "aut"))
+Description: A simple method
+  to select the best model or best subset of variables using
+  different types of data (binary, Gaussian or Poisson) and
+  applying it in different contexts (parametric or non-parametric).
+URL: http://cran.r-project.org/package=FWDselect
 BugReports: http://github.com/sestelo/fwdselect/issues
-Depends: R (>= 3.1.1)
+Depends: R (>= 3.1.0)
 License: MIT + file LICENSE
 LazyData: true
 Imports:

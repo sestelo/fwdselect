@@ -27,6 +27,9 @@
 #'@param bootseed Seed to be used in the bootstrap procedure.
 #'@param cluster A logical value. If  \code{TRUE} (default), the testing
 #'  procedure is  parallelized.
+#'@param ncores An integer value specifying the number of cores to be used
+#' in the parallelized procedure. If \code{NULL} (default), the number of cores to be used
+#' is equal to the number of cores of the machine - 1.
 #'@details In a regression framework, let \eqn{X_1, X_2, \ldots, X_p},  a set of
 #'  \eqn{p} initial variables and \eqn{Y} the response variable, we propose a
 #'  procedure to test the null hypothesis of \eqn{q} significant variables  in
@@ -64,7 +67,7 @@
 
 test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
                  speedup = TRUE, qmin = NULL, unique = FALSE, q = NULL,
-                 bootseed = NULL, cluster = TRUE){
+                 bootseed = NULL, cluster = TRUE, ncores = NULL){
 
   # Statistics T
   Tvalue <- function(xy, qT = qh0, optionT = method,
@@ -153,14 +156,21 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
 
 
 
-
-
-  if (cluster==TRUE){
-    num_cores <- detectCores() - 1
-    if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
-    cl<-makeCluster(num_cores, type = par_type, outfile="marta")
+  if (cluster == TRUE & detectCores() == 2 & is.null(ncores)) {
+    stop("The number of cores used in the parallelized procedure is just one. It is recommended to use cluster = FALSE ")
   }
 
+  # for paralellize
+  if (cluster == TRUE){
+    if (is.null(ncores)){
+      ncores <- detectCores() - 1
+    }else{
+      ncores <- ncores
+    }
+    if(.Platform$OS.type == "unix"){par_type = "FORK"}else{par_type = "PSOCK"}
+    cl <- makeCluster(ncores, type = par_type)
+    on.exit(stopCluster(cl))
+  }
 
   nvar <- ncol(x)
   n <- length(y)
@@ -194,7 +204,7 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
     # Bootstrap
     ################################
 
-    set.seed(bootseed)
+    if (!is.null(bootseed)) {set.seed(bootseed)}
 
     if (family == "gaussian") {
       errg = y - muhatg
@@ -249,6 +259,5 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
   cat("\n*************************************\n")
   return(as.data.frame(m))
 
-  if (cluster == TRUE){stopCluster(cl = cl)}
 
 }

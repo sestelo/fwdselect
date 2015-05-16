@@ -19,6 +19,9 @@
 #'@param nfolds Number of folds for the cross-validation procedure.
 #'@param cluster A logical value. If  \code{TRUE} (default), the
 #'  procedure is  parallelized.
+#'@param ncores An integer value specifying the number of cores to be used
+#' in the parallelized procedure. If \code{NULL} (default), the number of cores to be used
+#' is equal to the number of cores of the machine - 1.
 #'@return
 #'\item{q}{A vector of subset sizes.}
 #'\item{criterion}{A vector of Information criterion values.}
@@ -36,7 +39,7 @@
 #'@export
 
 qselection = function(x, y, qvector, criterion = "deviance",
-    method = "lm", family = "gaussian", nfolds = 5, cluster = TRUE) {
+    method = "lm", family = "gaussian", nfolds = 5, cluster = TRUE, ncores = NULL) {
 
     if (missing(x)) {
         stop("Argument \"x\" is missing, with no default")
@@ -61,7 +64,7 @@ qselection = function(x, y, qvector, criterion = "deviance",
           prevar <- aux$Variable_numbers
         }
         aux <- selection(x = x, y = y, q = q, prevar = prevar, criterion = criterion,
-            method = method, family = family, seconds = F, cluster = cluster)
+            method = method, family = family, seconds = F, cluster = cluster, ncores = ncores)
         in_c[cont] <- round(aux$Information_Criterion,
             3)
         var[cont] <- toString(aux$Variable_names)

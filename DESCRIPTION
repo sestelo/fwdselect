@@ -1,7 +1,7 @@
 Package: FWDselect
 Title: Selecting Variables in Regression Models
-Version: 2.0
-Date: 2015-05-15
+Version: 2.0.1
+Date: 2015-07-22
 Author: Marta Sestelo [aut, cre],
   Nora M. Villanueva [aut],
   Javier Roca-Pardinas [aut]

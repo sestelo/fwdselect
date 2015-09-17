@@ -82,6 +82,7 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
     # if (!exists("pred")) {pred <<- aux$Prediction}
     pred <- aux$Prediction
     sel_num <- aux$Variable_number
+
     #res = y - pred
     res = aux$Best_model$residuals
     if (speed == TRUE & qT!=(nvar-1)) {
@@ -93,12 +94,12 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
       }else if (speed == TRUE & qT == (nvar-1)){
        xres = x[, -sel_num]
       } else {
-            xno = x[, -sel_num]
-           realqmin <- qmin-qT
+          xno = x[, -sel_num]
+          realqmin <- qmin-qT
           var_imp = selection(xno, res, q = realqmin, method = optionT,
                              family = "gaussian", seconds = FALSE,
                             criterion = "deviance", cluster = FALSE)$Variable_number
-        xres = xno[, c(var_imp)]
+          xres = xno[, c(var_imp)]
         }
     data_res = cbind(res, xres)
 
@@ -132,6 +133,7 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
 
     pred1 <- predict(pred1, type = "response")
     T = sum(abs(pred1))
+   # print(T)
     return(list(T = T, pred = pred, sel_num = sel_num))
   }
 
@@ -198,7 +200,10 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
     T[ii] <- res$T
     sel_numg<- res$sel_num # lo saco de la funcion Tvalue bajo H_0
     muhatg <- res$pred  #lo saco de la funcion Tvalue bajo H_0
-    muhatg[muhatg < 0] <- 0
+
+
+
+    if(family != "gaussian") muhatg[muhatg < 0] <- 0  #VER ESTO!!!!
 
 
     # Bootstrap
@@ -215,6 +220,7 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
         yaux <- rbinom(n, 1, prob = (5 + sqrt(5))/10)
         return(muhatg + (err1 * yaux + err2 * (1 - yaux)))
       }
+
       yb <- replicate(nboot,funreplicate())
     }
 
@@ -242,7 +248,7 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
       Tboot <- apply(yb,2,funapply)
     }
 
-    pvalue[ii] = sum(Tboot >= T[ii])/nboot
+    pvalue[ii] = sum(Tboot > T[ii])/nboot
 
     if (pvalue[ii] >= 0.05) {
       Decision[ii] = "Accepted"

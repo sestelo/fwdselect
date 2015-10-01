@@ -251,14 +251,14 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
     pvalue[ii] = sum(Tboot > T[ii])/nboot
 
     if (pvalue[ii] >= 0.05) {
-      Decision[ii] = "Accepted"
+      Decision[ii] = "Not Rejected"
     } else {
       Decision[ii] = "Rejected"
     }
     Hypothesis[ii] = paste("H_0 (", qh0, ")", sep = "")
     T[ii] = round(T[ii], 2)
     ii = ii + 1
-    if (Decision[ii - 1] == "Accepted") {break}
+    if (Decision[ii - 1] == "Not Rejected") {break}
   }
 
   m = cbind(Hypothesis = Hypothesis, Statistic = T, pvalue = pvalue, Decision = Decision)

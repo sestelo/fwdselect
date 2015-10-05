@@ -18,7 +18,7 @@ are present in the model.
 }
 \details{
 \tabular{ll}{ Package: \tab FWDselect\cr Type: \tab Package\cr
-Version: \tab 2.0\cr Date: \tab 2015-05-15\cr License: \tab MIT + file LICENSE\cr}
+Version: \tab 2.0.1\cr Date: \tab 2015-07-22\cr License: \tab MIT + file LICENSE\cr}
 
 \code{FWDselect} is just a shortcut for ``Forward selection'' and is a very
 good summary of one of the package's major functionalities, i.e., that of

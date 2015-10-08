@@ -71,6 +71,12 @@
 #'@importFrom parallel clusterExport
 #'@importFrom parallel parCapply
 #'@importFrom parallel stopCluster
+#'@importFrom stats as.formula
+#'@importFrom stats lm
+#'@importFrom stats glm
+#'@importFrom stats predict
+#'@importFrom stats rbinom
+#'@importFrom stats rpois
 #'@export
 
 test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,

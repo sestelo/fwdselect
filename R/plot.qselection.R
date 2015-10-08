@@ -16,6 +16,8 @@
 #' y = diabetes[ ,1]
 #' obj2 = qselection(x, y, qvector = c(1:9), method = "lm", criterion = "variance", cluster = FALSE)
 #' plot(obj2)
+#' @importFrom graphics plot
+#' @importFrom graphics axis
 #' @export
 
 plot.qselection <- function(x = object, y = NULL,

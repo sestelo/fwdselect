@@ -67,7 +67,13 @@
 #'@importFrom parallel makeCluster
 #'@importFrom parallel parLapply
 #'@importFrom parallel stopCluster
-#'@importFrom cvTools cvFolds
+#'@importFrom stats as.formula
+#'@importFrom stats deviance
+#'@importFrom stats lm
+#'@importFrom stats glm
+#'@importFrom stats predict
+#'@importFrom stats update
+#'@importFrom stats var
 #'@export
 
 
@@ -380,7 +386,7 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
       }
     }
 
-    aux <- cvFolds(n, K = nfolds, type = "consecutive")
+    aux <- cvTools::cvFolds(n, K = nfolds, type = "consecutive")
     if (cluster == TRUE){
       cv_ics <- parLapply(cl = cl, 1:nfolds, eachfold)
     }else{

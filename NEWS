@@ -24,3 +24,8 @@ This file documents software changes since the previous edition.
 
   * the error realated with NA's in the selection and qselection function has been solved.
 
+
+
+# FWDselect 2.0.0.9000 (2015-10-08)
+
+  * development version.

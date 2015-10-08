@@ -4,7 +4,7 @@
 \alias{plot.qselection}
 \title{Visualization of \code{qselection} object}
 \usage{
-plot.qselection(x = object, y = NULL, ylab = NULL, ...)
+\method{plot}{qselection}(x = object, y = NULL, ylab = NULL, ...)
 }
 \arguments{
 \item{x}{\code{qselection} object.}

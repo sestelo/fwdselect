@@ -2,8 +2,7 @@ This file documents software changes since the previous edition.
 
 
 
-FWDselect 2.0 (2014-05-15)
-———————————————————————————
+# FWDselect 2.0 (2015-05-15)
 
   * the testing procedure have been optimized.
 
@@ -14,3 +13,14 @@ FWDselect 2.0 (2014-05-15)
   * a new argument for the number of folds in the cross-validation procedure has been included in the selection function.
 
   * the diabetes dataset has been added.
+
+
+
+# FWDselect 2.0.1 (2015-10-08)
+
+  * the help documentation has been improved for the test function.
+
+  * a new example has been added to the test function in order to explain the speedup = FALSE argument.
+
+  * the error realated with NA's in the selection and qselection function has been solved.
+

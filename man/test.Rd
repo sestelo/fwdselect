@@ -26,13 +26,14 @@ used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 is  computationally efficient since it considers one more variable to fit
 the alternative model than the number of variables used to fit the null.
 If \code{FALSE}, the fit of the alternative model is based on considering
-the best subset of variables of size greater than $q$, the one that minimizes an
+the best subset of variables of size greater than \code{q}, the one that minimizes an
 information criterion. The size of this subset must be given by the user
 filling the argument \code{qmin}.}
 
 \item{qmin}{By default \code{NULL}. If \code{speedup} is \code{FALSE},
-\code{qmin} is the integer number which corresponds with the size of
-the best subset of variables.}
+\code{qmin} is an integer number selected by the user. To help you select
+this argument, it is recommended to visualize the graphical output of the
+\code{plot} function and choose the number \code{q} which minimizes the curve.}
 
 \item{unique}{A logical value. By default \code{FALSE}. If  \code{TRUE},
 the test is performed only for one null hypothesis, given by the argument  \code{q}.}
@@ -83,6 +84,13 @@ data(diabetes)
 x = diabetes[ ,2:11]
 y = diabetes[ ,1]
 test(x, y, method = "lm", cluster = FALSE, nboot = 5)
+
+# for speedup = FALSE
+obj2 = qselection(x, y, qvector = c(1:9), method = "lm",
+ cluster = FALSE)
+plot(obj2) # we choose q = 7 for the argument qmin
+test(x, y, method = "lm", cluster = FALSE, nboot = 5,
+speedup = FALSE, qmin = 7)
 }
 \author{
 Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.

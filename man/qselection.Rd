@@ -30,7 +30,13 @@ used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 \item{nfolds}{Number of folds for the cross-validation procedure.}
 
 \item{cluster}{A logical value. If  \code{TRUE} (default), the
-procedure is  parallelized.}
+procedure is  parallelized. Note that there are cases without enough
+repetitions (e.g., a low number of initial variables) that R will gain in
+performance through serial computation. R takes time to distribute tasks
+across the processors also it will need time for binding them all together
+later on. Therefore, if the time for distributing and gathering pieces
+together is greater than the time need for single-thread computing, it does
+not worth parallelize.}
 
 \item{ncores}{An integer value specifying the number of cores to be used
 in the parallelized procedure. If \code{NULL} (default), the number of cores to be used

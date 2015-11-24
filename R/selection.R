@@ -103,8 +103,14 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
   }
 
 
+  if(!criterion %in% c("deviance", "R2", "variance", "aic", "aicc", "bic")) {
+    stop('The selected criterion is not implemented')
+  }
+
+
   if (cluster == TRUE & detectCores() == 2 & is.null(ncores)) {
-    stop("The number of cores used in the parallelized procedure is just one. It is recommended to use cluster = FALSE ")
+    stop("The number of cores used in the parallelized procedure is just one.
+         It is recommended to use cluster = FALSE ")
   }
 
   # for paralellize
@@ -146,7 +152,8 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
       xyes[l] = xnam
     }
 
-    form1 <- update(as.formula(model, env = environment(fun = NULL)), paste(". ~ ", paste(xyes, collapse = "+")))
+    form1 <- update(as.formula(model, env = environment(fun = NULL)), paste(". ~ ",
+                                                                            paste(xyes, collapse = "+")))
     if (method == "gam"){
       model <- gam(form1, family = family)
     }else{
@@ -237,7 +244,8 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     }
 
     xyes[k] = xnam
-    form1 <- update(as.formula(model, env = environment(fun = NULL)), paste(". ~ ", paste(xyes, collapse = "+")))
+    form1 <- update(as.formula(model, env = environment(fun = NULL)), paste(". ~ ",
+                                                                            paste(xyes, collapse = "+")))
     if (method == "gam"){
       model <- gam(form1, family = family)
     }else{
@@ -395,7 +403,23 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     return(mean(unlist(cv_ics)))
   }
 
-  icfin <- cv(nfolds)
+  aicc <- function(model){
+    n <- length(model$y)
+    k <- attr(logLik(model), "df")
+    res <- AIC(model) + 2 * k * (k+1)/(n-k-1)
+  }
+
+  if(criterion %in% c("deviance", "R2", "variance")){
+    icfin <- cv(nfolds)
+  }else{
+    if (criterion == "aic"){
+     icfin <- AIC(model)
+    }else if(criterion == "aicc"){
+      icfin <- aicc(model)
+    }else{
+      icfin <- BIC(model)
+    }
+  }
 
   if(class(x) == "data.frame"){
     names1 = names(x[inside])

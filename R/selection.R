@@ -8,9 +8,13 @@
 #'  selected.
 #'@param prevar A vector containing the number of the best subset of
 #'  \code{q-1} variables. \code{NULL}, by default.
-#'@param criterion The cross-validation-based information criterion to be used.
-#'  Default is the deviance. Other functions provided are the coefficient of
-#'  determination (\code{"R2"}) and residual variance (\code{"variance"}).
+#'@param criterion The information criterion to be used.
+#'  Default is the deviance. Other functions provided
+#'  are the coefficient of determination (\code{"R2"}), the residual
+#'  variance (\code{"variance"}), the Akaike information criterion (\code{"aic"}),
+#'  AIC with a correction for finite sample sizes (\code{"aicc"})
+#'  and the Bayesian information criterion (\code{"bic"}). The deviance,
+#'  coefficient of determination and variance are calculated by cross-validation.
 #'@param method A character string specifying which regression method is used,
 #'  i.e., linear models (\code{"lm"}), generalized additive models
 #'  (\code{"glm"}) or generalized additive models (\code{"gam"}).
@@ -21,7 +25,8 @@
 #'  then, rather than returning the single best model only, the function returns
 #'  a few of the best models (equivalent).
 #'@param nmodels Number of secondary models to be returned.
-#'@param nfolds Number of folds for the cross-validation procedure.
+#'@param nfolds Number of folds for the cross-validation procedure, for
+#'\code{deviance}, \code{R2} or \code{variance} criterion.
 #'@param cluster A logical value. If  \code{TRUE} (default), the
 #'  procedure is  parallelized. Note that there are cases without enough
 #'  repetitions (e.g., a low number of initial variables) that R will gain in

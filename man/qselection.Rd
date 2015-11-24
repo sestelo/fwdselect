@@ -15,9 +15,13 @@ qselection(x, y, qvector, criterion = "deviance", method = "lm",
 \item{qvector}{A vector with more than one variable-subset size to be
 selected.}
 
-\item{criterion}{The cross-validation-based information criterion to be used.
-Default is the deviance. Other functions provided are the coefficient of
-determination (\code{"R2"}) and residual variance (\code{"variance"}).}
+\item{criterion}{The information criterion to be used.
+Default is the deviance. Other functions provided
+are the coefficient of determination (\code{"R2"}), the residual
+variance (\code{"variance"}), the Akaike information criterion (\code{"aic"}),
+AIC with a correction for finite sample sizes (\code{"aicc"})
+and the Bayesian information criterion (\code{"bic"}). The deviance,
+coefficient of determination and variance are calculated by cross-validation.}
 
 \item{method}{A character string specifying which regression method is used,
 i.e., linear models (\code{"lm"}), generalized additive models
@@ -27,7 +31,8 @@ i.e., linear models (\code{"lm"}), generalized additive models
 used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 (\code{"poisson"}).}
 
-\item{nfolds}{Number of folds for the cross-validation procedure.}
+\item{nfolds}{Number of folds for the cross-validation procedure, for
+\code{deviance}, \code{R2} or \code{variance} criterion.}
 
 \item{cluster}{A logical value. If  \code{TRUE} (default), the
 procedure is  parallelized. Note that there are cases without enough
@@ -50,7 +55,9 @@ is equal to the number of cores of the machine - 1.}
 \description{
 Function that enables to obtain the best variables for more than
  one size of subset. Returns a table with the chosen covariates to be
- introduced into the models and their information criteria.
+ introduced into the models and their information criteria. Additionally, an
+  asterisk is shown next to the size of subset which minimizes the
+  information criterion.
 }
 \examples{
 library(FWDselect)

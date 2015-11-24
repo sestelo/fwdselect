@@ -5,7 +5,8 @@
 #' @param \ldots Other options.
 #' @return The function returns a summary table with the subsets of size
 #'   \eqn{q}, their information criterion values and the chosen variables for
-#'   each one.
+#'   each one. Additionally, an asterisk is shown next to the size of subset
+#'   which minimizes the information criterion.
 #' @author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 #' @seealso \code{\link{selection}}.
 #' @examples

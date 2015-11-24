@@ -2,21 +2,28 @@
 #'
 #'@description Function that enables to obtain the best variables for more than
 #'  one size of subset. Returns a table with the chosen covariates to be
-#'  introduced into the models and their information criteria.
+#'  introduced into the models and their information criteria. Additionally, an
+#'   asterisk is shown next to the size of subset which minimizes the
+#'   information criterion.
 #'@param x A data frame containing all the covariates.
 #'@param y A vector with the response values.
 #'@param qvector A vector with more than one variable-subset size to be
 #'  selected.
-#'@param criterion The cross-validation-based information criterion to be used.
-#'  Default is the deviance. Other functions provided are the coefficient of
-#'  determination (\code{"R2"}) and residual variance (\code{"variance"}).
+#'@param criterion The information criterion to be used.
+#'  Default is the deviance. Other functions provided
+#'  are the coefficient of determination (\code{"R2"}), the residual
+#'  variance (\code{"variance"}), the Akaike information criterion (\code{"aic"}),
+#'  AIC with a correction for finite sample sizes (\code{"aicc"})
+#'  and the Bayesian information criterion (\code{"bic"}). The deviance,
+#'  coefficient of determination and variance are calculated by cross-validation.
 #'@param method A character string specifying which regression method is used,
 #'  i.e., linear models (\code{"lm"}), generalized additive models
 #'  (\code{"glm"}) or generalized additive models (\code{"gam"}).
 #'@param family A description of the error distribution and link function to be
 #'  used in the model: (\code{"gaussian"}), (\code{"binomial"}) or
 #'  (\code{"poisson"}).
-#'@param nfolds Number of folds for the cross-validation procedure.
+#'@param nfolds Number of folds for the cross-validation procedure, for
+#'\code{deviance}, \code{R2} or \code{variance} criterion.
 #'@param cluster A logical value. If  \code{TRUE} (default), the
 #'  procedure is  parallelized. Note that there are cases without enough
 #'  repetitions (e.g., a low number of initial variables) that R will gain in

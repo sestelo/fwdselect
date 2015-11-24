@@ -24,7 +24,12 @@ print.qselection <- function(x = object, ...) {
     aux = cbind(object[[1]], object[[2]], as.character(object[[3]]))
     colnames(aux) = names(object)
     aux2 = as.data.frame(aux)
-    print(aux2)
+    ii <- which.min(object[[2]])
+    best <- rep("", length(object[[1]]))
+    best[ii] <- "*"
+    res <- cbind(aux2,best)
+    colnames(res) <- c(names(object), "")
+    print(res)
   }else{
     stop("Argument x must be either qselection object.")
   }

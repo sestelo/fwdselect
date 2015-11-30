@@ -277,7 +277,9 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
 
   m = cbind(Hypothesis = Hypothesis, Statistic = T, pvalue = pvalue, Decision = Decision)
   cat("\n*************************************\n")
-  return(as.data.frame(m))
-
-
+  res = as.data.frame(m)
+  nvar = length(pvalue)
+  print(res)
+  res2 <- list(table = res, nvar = nvar)
+  return(res2)
 }

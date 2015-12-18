@@ -13,7 +13,7 @@
 #' @name FWDselect
 #' @docType package
 #' @details \tabular{ll}{ Package: \tab FWDselect\cr Type: \tab Package\cr
-#' Version: \tab 2.0.0.9000\cr Date: \tab 2015-10-08\cr License: \tab MIT + file LICENSE\cr}
+#' Version: \tab 2.1.0\cr Date: \tab 2015-12-18\cr License: \tab MIT + file LICENSE\cr}
 #'
 #' \code{FWDselect} is just a shortcut for ``Forward selection'' and is a very
 #' good summary of one of the package's major functionalities, i.e., that of

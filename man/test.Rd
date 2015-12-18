@@ -51,10 +51,14 @@ in the parallelized procedure. If \code{NULL} (default), the number of cores to 
 is equal to the number of cores of the machine - 1.}
 }
 \value{
+A list with two objects. The first one is a table containing
 \item{Hypothesis}{Number of the null hypothesis tested}
- \item{Statistic}{Value of the T statistic} \item{pvalue}{pvalue obtained in
- the testing procedure} \item{Decision}{Result of the test for a significance
- level of 0.05}
+\item{Statistic}{Value of the T statistic}
+\item{pvalue}{pvalue obtained in the testing procedure}
+\item{Decision}{Result of the test for a significance level of 0.05}
+
+The second argument \code{nvar} indicates the number of variables that
+have to be included in the model.
 }
 \description{
 Function that applies a bootstrap based test for covariate
@@ -85,12 +89,12 @@ x = diabetes[ ,2:11]
 y = diabetes[ ,1]
 test(x, y, method = "lm", cluster = FALSE, nboot = 5)
 
-# for speedup = FALSE
-obj2 = qselection(x, y, qvector = c(1:9), method = "lm",
- cluster = FALSE)
-plot(obj2) # we choose q = 7 for the argument qmin
-test(x, y, method = "lm", cluster = FALSE, nboot = 5,
-speedup = FALSE, qmin = 7)
+## for speedup = FALSE
+# obj2 = qselection(x, y, qvector = c(1:9), method = "lm",
+# cluster = FALSE)
+# plot(obj2) # we choose q = 7 for the argument qmin
+# test(x, y, method = "lm", cluster = FALSE, nboot = 5,
+# speedup = FALSE, qmin = 7)
 
 }
 \author{

@@ -79,6 +79,9 @@
 #'@importFrom stats predict
 #'@importFrom stats update
 #'@importFrom stats var
+#'@importFrom stats AIC
+#'@importFrom stats BIC
+#'@importFrom stats logLik
 #'@export
 
 
@@ -533,7 +536,17 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
       besticn = deviance(model)
 
 
-      icfin <- cv(nfolds)
+      if(criterion %in% c("deviance", "R2", "variance")){
+        icfin <- cv(nfolds)
+      }else{
+        if (criterion == "aic"){
+          icfin <- AIC(model)
+        }else if(criterion == "aicc"){
+          icfin <- aicc(model)
+        }else{
+          icfin <- BIC(model)
+        }
+      }
 
       if(class(x) == "data.frame"){
         names2 = names(x[inside])

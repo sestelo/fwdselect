@@ -42,10 +42,15 @@
 #'  given to a test for the null hypothesis \deqn{H_{0} (q): \sum_{j=1}^p
 #'  I_{\{m_j \ne 0\}} \le q} vs. the general hypothesis \deqn{H_{1} :
 #'  \sum_{j=1}^p I_{\{m_j \ne 0\}} > q}
-#'@return \item{Hypothesis}{Number of the null hypothesis tested}
-#'  \item{Statistic}{Value of the T statistic} \item{pvalue}{pvalue obtained in
-#'  the testing procedure} \item{Decision}{Result of the test for a significance
-#'  level of 0.05}
+#'@return
+#' A list with two objects. The first one is a table containing
+#'\item{Hypothesis}{Number of the null hypothesis tested}
+#'\item{Statistic}{Value of the T statistic}
+#'\item{pvalue}{pvalue obtained in the testing procedure}
+#'\item{Decision}{Result of the test for a significance level of 0.05}
+#'
+#'The second argument \code{nvar} indicates the number of variables that
+#' have to be included in the model.
 #'@references Sestelo, M., Villanueva, N. M. and Roca-Pardinas, J. (2013).
 #'  FWDselect: an R package for selecting variables in regression models.
 #'  Discussion Papers in Statistics and Operation Research, University of Vigo, 13/01.
@@ -60,12 +65,12 @@
 #' y = diabetes[ ,1]
 #' test(x, y, method = "lm", cluster = FALSE, nboot = 5)
 #'
-#' # for speedup = FALSE
-#' obj2 = qselection(x, y, qvector = c(1:9), method = "lm",
-#'  cluster = FALSE)
-#' plot(obj2) # we choose q = 7 for the argument qmin
-#' test(x, y, method = "lm", cluster = FALSE, nboot = 5,
-#' speedup = FALSE, qmin = 7)
+#' ## for speedup = FALSE
+#' # obj2 = qselection(x, y, qvector = c(1:9), method = "lm",
+#' # cluster = FALSE)
+#' # plot(obj2) # we choose q = 7 for the argument qmin
+#' # test(x, y, method = "lm", cluster = FALSE, nboot = 5,
+#' # speedup = FALSE, qmin = 7)
 #'
 #'@importFrom parallel detectCores
 #'@importFrom parallel clusterExport
@@ -281,5 +286,5 @@ test <- function(x, y, method = "lm", family = "gaussian", nboot = 50,
   nvar = length(pvalue)
   print(res)
   res2 <- list(table = res, nvar = nvar)
-  return(res2)
+  #return(res2)
 }

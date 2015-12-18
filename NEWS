@@ -6,7 +6,8 @@ This file documents software changes since the previous edition.
 
   * the testing procedure have been optimized.
 
-  * test function has been reprogrammed to speed up computation by using the parallel package.
+  * test function has been reprogrammed to speed up computation by using
+  the parallel package.
 
   * selection function has been reprogrammed to speed up computation by using the parallel package.
 
@@ -26,6 +27,11 @@ This file documents software changes since the previous edition.
 
 
 
-# FWDselect 2.0.0.9000 (2015-10-08)
+# FWDselect 2.1.0 (2015-12-18)
 
-  * development version.
+  * selection function has been reprogrammed to add three more information criteria: Akaike information criterion (aic), AIC with a correction for finite sample sizes (aicc) and bic (Bayesian information criterion).
+
+  * qselection function adds now an asterisk to the returned table. It is shown next to the size of subset which minimizes the information criterion.
+
+  * test function returns now an additional argument ($nvar) which indicates the number of variables that have to be included in teh final model.
+

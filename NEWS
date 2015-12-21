@@ -35,3 +35,8 @@ This file documents software changes since the previous edition.
 
   * test function returns now an additional argument ($nvar) which indicates the number of variables that have to be included in teh final model.
 
+
+
+# FWDselect 2.1.0.9000 (2015-12-18)
+
+  * development version.

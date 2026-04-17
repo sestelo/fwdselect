@@ -4,9 +4,20 @@
 \alias{selection}
 \title{Selecting a subset of \code{q} variables}
 \usage{
-selection(x, y, q, prevar = NULL, criterion = "deviance", method = "lm",
-  family = "gaussian", seconds = FALSE, nmodels = 1, nfolds = 5,
-  cluster = TRUE, ncores = NULL)
+selection(
+  x,
+  y,
+  q,
+  prevar = NULL,
+  criterion = "deviance",
+  method = "lm",
+  family = "gaussian",
+  seconds = FALSE,
+  nmodels = 1,
+  nfolds = 5,
+  cluster = TRUE,
+  ncores = NULL
+)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -93,4 +104,3 @@ method = "lm", criterion = "variance", cluster = FALSE)
 \author{
 Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
 }
-

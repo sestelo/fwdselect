@@ -4,7 +4,8 @@
 \name{pollution}
 \alias{pollution}
 \title{Emission of SO2. Pollution incident data.}
-\format{\code{pollution} is a data frame with 19 variables (columns).
+\format{
+\code{pollution} is a data frame with 19 variables (columns).
   \describe{
   \item{Y}{response variable, registered values of SO2 at a
   specific temporal instant, in  microg/m3N. This is the value that we want to
@@ -18,7 +19,8 @@
   specific temporal instant, in this case 10-min instant temporal before, in
   microg/m3N.}
   ...
-  }}
+  }
+}
 \usage{
 pollution
 }
@@ -32,4 +34,3 @@ data(pollution)
 head(pollution)
 
 }
-

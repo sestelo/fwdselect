@@ -4,8 +4,17 @@
 \alias{qselection}
 \title{Selecting variables for several subset sizes}
 \usage{
-qselection(x, y, qvector, criterion = "deviance", method = "lm",
-  family = "gaussian", nfolds = 5, cluster = TRUE, ncores = NULL)
+qselection(
+  x,
+  y,
+  qvector,
+  criterion = "deviance",
+  method = "lm",
+  family = "gaussian",
+  nfolds = 5,
+  cluster = TRUE,
+  ncores = NULL
+)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -68,10 +77,9 @@ obj2 = qselection(x, y, qvector = c(1:9), method = "lm", criterion = "variance",
 obj2
 
 }
-\author{
-Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
-}
 \seealso{
 \code{\link{selection}} \code{\link{plot.qselection}}.
 }
-
+\author{
+Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
+}

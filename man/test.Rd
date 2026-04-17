@@ -4,9 +4,20 @@
 \alias{test}
 \title{Bootstrap based test for covariate selection}
 \usage{
-test(x, y, method = "lm", family = "gaussian", nboot = 50,
-  speedup = TRUE, qmin = NULL, unique = FALSE, q = NULL,
-  bootseed = NULL, cluster = TRUE, ncores = NULL)
+test(
+  x,
+  y,
+  method = "lm",
+  family = "gaussian",
+  nboot = 50,
+  speedup = TRUE,
+  qmin = NULL,
+  unique = FALSE,
+  q = NULL,
+  bootseed = NULL,
+  cluster = TRUE,
+  ncores = NULL
+)
 }
 \arguments{
 \item{x}{A data frame containing all the covariates.}
@@ -97,9 +108,6 @@ test(x, y, method = "lm", cluster = FALSE, nboot = 5)
 # speedup = FALSE, qmin = 7)
 
 }
-\author{
-Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
-}
 \references{
 Sestelo, M., Villanueva, N. M. and Roca-Pardinas, J. (2013).
  FWDselect: an R package for selecting variables in regression models.
@@ -108,4 +116,6 @@ Sestelo, M., Villanueva, N. M. and Roca-Pardinas, J. (2013).
 \seealso{
 \code{\link{selection}}
 }
-
+\author{
+Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
+}

@@ -27,10 +27,9 @@ y = diabetes[ ,1]
 obj1 = selection(x, y, q = 1, method = "lm", criterion = "variance", cluster = FALSE)
 obj1
 }
-\author{
-Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
-}
 \seealso{
 \code{\link{selection}}.
 }
-
+\author{
+Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
+}

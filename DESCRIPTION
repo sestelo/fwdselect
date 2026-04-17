@@ -6,8 +6,8 @@ Author: Marta Sestelo [aut, cre],
     Nora M. Villanueva [aut],
     Javier Roca-Pardinas [aut]
 Maintainer: Marta Sestelo <sestelo@uvigo.es>
-Authors@R: c(person("Marta", "Sestelo",email= "sestelo@uvigo.gal", role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0003-4284-6509"))),
-   person("Nora", "M. Villanueva",email= "nmvillanueva@uvigo.gal", role = c("aut", "cph"),
+Authors@R: c(person("Marta", "Sestelo",email= "sestelo@uvigo.gal", role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0003-4284-6509")),
+   person("Nora", "M. Villanueva",email= "nmvillanueva@uvigo.gal", role = c("aut", "cph")),
    person("Javier", "Roca-Pardinas",email= "roca@uvigo.es", role = "aut"))
 Description: A simple method
     to select the best model or best subset of variables using
@@ -28,4 +28,5 @@ Imports:
     parallel,
     graphics,
     stats
-RoxygenNote: 5.0.0
+RoxygenNote: 7.3.3
+Encoding: UTF-8

@@ -10,11 +10,7 @@
 #' capable of detecting whether significant effects of the unselected variables
 #' are present in the model.
 #'
-#' @name FWDselect
-#' @docType package
-#' @details \tabular{ll}{ Package: \tab FWDselect\cr Type: \tab Package\cr
-#' Version: \tab 2.1.0\cr Date: \tab 2015-12-18\cr License: \tab MIT + file LICENSE\cr}
-#'
+
 #' \code{FWDselect} is just a shortcut for ``Forward selection'' and is a very
 #' good summary of one of the package's major functionalities, i.e., that of
 #' providing a forward stepwise-based selection procedure. This software helps
@@ -49,4 +45,5 @@
 #'   Variable selection algorithm in regression models. Discussion Papers in
 #'   Statistics and Operation Research, University of Vigo, 13/02.
 #'
-NULL
+#' @keywords internal
+"_PACKAGE"

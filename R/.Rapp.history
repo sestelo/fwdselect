@@ -1,7 +1,0 @@
-load("/Users/Sestelo/.Trash/colonCS.rda")
-?summary
-?print
-?summary
-?predict
-?plot
-?predict

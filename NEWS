@@ -37,6 +37,6 @@ This file documents software changes since the previous edition.
 
 
 
-# FWDselect 2.1.0.9000 (2015-12-18)
+# FWDselect 2.1.1 (2026-04-17)
 
-  * development version.
+  * nfolds argument corrected in qselection function.

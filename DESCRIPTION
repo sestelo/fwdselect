@@ -1,19 +1,21 @@
 Package: FWDselect
 Title: Selecting Variables in Regression Models
-Version: 2.1.0.9000
-Date: 2015-12-18
+Version: 2.1.1
+Date: 2026-04-17
 Author: Marta Sestelo [aut, cre],
     Nora M. Villanueva [aut],
     Javier Roca-Pardinas [aut]
 Maintainer: Marta Sestelo <sestelo@uvigo.es>
-Authors@R: c(
-  person("Marta", "Sestelo",email= "sestelo@uvigo.es", role = c("aut", "cre")),
-  person("Nora", "M. Villanueva",email= "nmvillanueva@uvigo.es", role = "aut"),
-  person("Javier", "Roca-Pardinas",email= "roca@uvigo.es", role = "aut"))
+Authors@R: c(person("Marta", "Sestelo",email= "sestelo@uvigo.gal", role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0003-4284-6509"))),
+   person("Nora", "M. Villanueva",email= "nmvillanueva@uvigo.gal", role = c("aut", "cph"),
+   person("Javier", "Roca-Pardinas",email= "roca@uvigo.es", role = "aut"))
 Description: A simple method
     to select the best model or best subset of variables using
     different types of data (binary, Gaussian or Poisson) and
-    applying it in different contexts (parametric or non-parametric).
+    applying it in different contexts (parametric or non-parametric). 
+    Implemented methodology described in: M. Sestelo, N. M. Villanueva, 
+    L. Meira-Machado and J. Roca-Pardiñas (2016). FWDselect: an R package for 
+    variable selection in regression models. The R Journal, 8 (1), 132-148. <doi:10.32614/RJ-2016-009>.
 URL: http://cran.r-project.org/package=FWDselect
 BugReports: http://github.com/sestelo/fwdselect/issues
 Depends:

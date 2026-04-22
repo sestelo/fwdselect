@@ -429,7 +429,9 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
     }
   }
 
-  if(class(x) == "data.frame"){
+
+
+  if (inherits(x, "data.frame")) {
     names1 = names(x[inside])
   }else{
     allnames <- colnames(x)
@@ -548,7 +550,8 @@ selection <- function(x, y, q, prevar = NULL, criterion = "deviance",
         }
       }
 
-      if(class(x) == "data.frame"){
+
+      if (inherits(x, "data.frame")) {
         names2 = names(x[inside])
       }else{
         allnames <- colnames(x)

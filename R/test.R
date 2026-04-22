@@ -55,8 +55,7 @@
 #'  FWDselect: an R package for selecting variables in regression models.
 #'  Discussion Papers in Statistics and Operation Research, University of Vigo, 13/01.
 #'@author Marta Sestelo, Nora M. Villanueva and Javier Roca-Pardinas.
-#'@note The detailed expression of the formulas are described in HTML help
-#'  \url{http://cran.r-project.org/web/packages/FWDselect/FWDselect.pdf}
+#'@note The detailed expression of the formulas are described in HTML help.
 #'@seealso \code{\link{selection}}
 #'@examples
 #' library(FWDselect)

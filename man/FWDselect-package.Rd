@@ -55,8 +55,8 @@ Burnham, K., Anderson, D. (2002). Model selection and multimodel
 \seealso{
 Useful links:
 \itemize{
-  \item \url{http://cran.r-project.org/package=FWDselect}
-  \item Report bugs at \url{http://github.com/sestelo/fwdselect/issues}
+  \item \url{https://CRAN.R-project.org/package=FWDselect}
+  \item Report bugs at \url{https://github.com/sestelo/fwdselect/issues}
 }
 
 }

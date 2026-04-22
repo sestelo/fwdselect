@@ -78,7 +78,7 @@ qselection = function(x, y, qvector, criterion = "deviance",
         }
         aux <- selection(x = x, y = y, q = q, prevar = prevar, criterion = criterion,
             method = method, family = family, seconds = F, cluster = cluster, ncores = ncores,
-            nfols = nfolds)
+            nfolds = nfolds)
         in_c[cont] <- round(aux$Information_Criterion,
             3)
         var[cont] <- toString(aux$Variable_names)

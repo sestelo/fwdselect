@@ -90,8 +90,7 @@ In a regression framework, let \eqn{X_1, X_2, \ldots, X_p},  a set of
  \sum_{j=1}^p I_{\{m_j \ne 0\}} > q}
 }
 \note{
-The detailed expression of the formulas are described in HTML help
- \url{http://cran.r-project.org/web/packages/FWDselect/FWDselect.pdf}
+The detailed expression of the formulas are described in HTML help.
 }
 \examples{
 library(FWDselect)
